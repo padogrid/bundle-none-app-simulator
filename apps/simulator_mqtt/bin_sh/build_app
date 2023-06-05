@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+SCRIPT_DIR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+. $SCRIPT_DIR/.addonenv.sh
+
+EXECUTABLE="`basename $0`"
+
+if [ "$HELP" == "true" ]; then
+   echo "Usage:"
+   echo "   ./$EXECUTABLE [-clean] [-?]"
+   echo ""
+   echo "   Builds the MQTT simulator environment."
+   echo ""
+   echo "Default: ./$EXECUTABLE"
+   echo ""
+   exit
+fi
+
+pushd $APP_DIR > /dev/null
+mvn package
+popd > /dev/null

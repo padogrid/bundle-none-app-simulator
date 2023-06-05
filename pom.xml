@@ -5,13 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>padogrid.addon</groupId>
-	<!-- @template: Enter your bundle name here -->
-	<artifactId>bundle-mosquitto-template</artifactId>
+	<artifactId>bundle-mosquitto-app-simulator</artifactId>
 	<packaging>pom</packaging>
 	<name>${project.artifactId}</name>
 	<version>1.0.0</version>
-	<!-- @template: Enter your bundle description -->
-	<description>Bundle template</description>
+	<description>An MQTT source simulator for generating continuous data</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
