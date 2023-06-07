@@ -54,3 +54,4 @@ results
 *.sh0
 pom.xml0
 build
+perf_test*

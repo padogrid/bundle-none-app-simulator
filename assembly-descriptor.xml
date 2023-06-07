@@ -20,8 +20,8 @@
 		
 		<!-- Executable permissions -->
 		<fileSet>
-			<directory>apps/simulator_mqtt/bin_sh/</directory>
-			<outputDirectory>apps/simulator_mqtt/bin_sh/</outputDirectory>
+			<directory>apps/simulator/bin_sh/</directory>
+			<outputDirectory>apps/simulator/bin_sh/</outputDirectory>
 			<includes>
 				<include>**</include>
 			</includes>

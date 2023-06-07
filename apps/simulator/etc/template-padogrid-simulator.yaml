@@ -1,0 +1,112 @@
+# Define one or more equations
+equations:
+    # Required unique equation name. Required for configuring publisher
+  - name: null
+
+    # Optional equation formula (for documentation only)
+    # Example: y=sin(x)
+    formula: null
+
+    # Optional equation description (for documentation only)
+    description: null
+
+    # Optional time format.
+    # Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+    timeFormat: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
+    # Optional start time. Must conform to timeFormat. Ex: "2022-10-10T09:00:00.000-0400"
+    # Default: current time.
+    startTime: "2022-10-10T09:00:00.000-0400"
+
+    # Optional time interval in milliseconds
+    # Default: 500
+    timeInterval: 500
+
+    # Optional miniumn base (x) value. The base is equivalent to x in y=x.
+    # Default: -1
+    minBase: -1
+
+    # Optional maximum base (x) value. The base is equivalent to x in y=x.
+    # Default: 1
+    maxBase: 1
+
+    # Optional base value spread (delta). x is incremented by this value before each calculation.
+    # Default: 0.1
+    baseSpread: 0.1
+
+    # Optional percentage of the random number to add to the equation result before
+    # the base average (maxBase-minBase) is added to the computed value.
+    # Default: 0.1
+    jitter: 0.1
+
+    # Optional multiplier. The jitter computed value is multiplied by this value. Set this attribute
+    # to amplify or deamplify the final value.
+    # Default: 1.0
+    multiplier: 1.0
+
+    # Calculation function. Must be a static method with the following signature.
+    #    public final double my_function(double x);
+    # The following classes contain useful functions.
+    #   java.lang.Math
+    #    padogrid.simulator.eq.Equations
+    # Example: java.lang.Math.sin
+    #          padogrid.simulator.eq.circle
+    # Must specify one of calculationFunction and calculationClass. calculationFunction overrides
+    # calculationClass.
+    calculationFunction: null
+
+    # Calculation class. Must implement padogrid.simulator.ICalculation.
+    # Must specify one of calculationFunction and calculationClass. calculationFunction overrides
+    # calculationClass.
+    calculationClass: null
+
+    # Optional constant value. This value is added to the value returned by the calculation function.
+    # Set this attribute to move the curve up or down along the y-axis.
+    # Default: 0
+    constant: 0
+
+publishers:        
+  # MQTT
+    # Required product name.
+    # Valid values are mqtt, hazelcast
+  - product: mqtt
+
+    # Required unique publisher name.
+    name: null
+
+    # Required equation name. This must be one of the equation names defined in
+    # in the equations element.
+    equationName: null
+
+    # Data structure. Each product has one or more data structure types as follows.
+    #
+    # - mqtt
+    #     dataStructure:
+    #       type: topic
+    #       name: <topic_name>
+    #
+    # - hazelcast
+    #     dataStructure:
+    #       type: map
+    #       name: <map_name>
+    #     dataStructure:
+    #       type: rmap
+    #       name: <replicated_map_name>
+    #     dataStructure:
+    #       type: queue
+    #       name: <queue_name>
+    #     dataStructure:
+    #       type: topic
+    #       name: <topic_name>
+    dataStructure:
+      type: null
+      name: null
+    
+    # Initial delay in milliseconds. The publisher waits this amount of time before start
+    # publishing data.
+    # Default: 0
+    initialDelay: 0
+
+    # Time interval in milliseconds. The publisher periodically publishes data at this
+    # interval.
+    interval: 500

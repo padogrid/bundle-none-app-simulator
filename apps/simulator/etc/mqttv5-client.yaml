@@ -1,0 +1,52 @@
+#
+# Copyright (c) 2023 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# true to enable the cluster service, false to disable.
+# Default: true
+enabled: true
+
+# Default cluster name.
+# Default: cluster-default
+defaultCluster: edge
+
+# Tag name that describes this JVM.
+# Default: cluster-tag
+tag: cluster-tag
+
+# Cluster probe delay interval in milliseconds. The cluster service periodically
+# probes the endpoints defined in each cluster.
+# Default: 5000 
+probeDelay: 5000
+
+clusters:
+  - name: edge
+    enabled: true
+    autoConnect: true
+    fos: 0
+    
+    # Publisher Type. Valid values are STICKY, RANDOM, ROUND_ROBIN, ALL.
+    #   STICKY - Use one server for all publications.
+    #   RANDOM - Randomly select one server from the live list for each publication.
+    #   ROUND_ROBIN - Select the next server from the live list for each publication.
+    #   ALL - Publish each message to all servers in the live list.
+    # If STICKY and primaryServerURI is defined, the cluster client always uses
+    # that server for all operations.
+    # Default: STICKY
+    publisherType: ROUND_ROBIN
+    
+    connections:
+      - connection:
+          serverURIs: [tcp://localhost:1883-1892]

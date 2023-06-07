@@ -1,0 +1,39 @@
+# Equations for generating stock quotes
+equations:
+  - name: stock
+    formula: y=tanh(x)
+    description: tanh based stock quotes
+    timeInterval: 500
+    minBase: -1
+    maxBase: 2
+    baseSpread: 0.01
+    jitter: 0.05
+    multiplier: 50
+    constant: 1
+    calculationFunction: java.lang.Math.tanh
+  - name: stock2
+    formula: y=x^3+x^2+1
+    description: cubic based stock quotes
+    timeInterval: 500
+    minBase: -1.2
+    maxBase: 0.5
+    multiplier: 100
+    baseSpread: 0.005
+    jitter: 0.05
+    calculationFunction: padogrid.simulator.eq.Equations.cubic2
+publishers:        
+  # MQTT
+  - product: mqtt
+    name: stock-publisher
+    equationName: stock
+    dataStructure:
+      type: topic
+      name: test/stock
+    interval: 100
+  - product: mqtt
+    name: stock2-publisher
+    equationName: stock2
+    dataStructure:
+      type: topic
+      name: test/stock2
+    interval: 100
