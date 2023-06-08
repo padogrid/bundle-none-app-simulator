@@ -50,4 +50,4 @@ if [[ "$JAVA_VERSION" != "1.8"* ]]; then
    JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
 fi
 
-"$JAVA" $JAVA_OPTS padogrid.simulator.ClusterSimulator "$@"
+"$JAVA" $JAVA_OPTS padogrid.simulator.DataFeedSimulator "$@"

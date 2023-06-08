@@ -21,6 +21,7 @@ public class Equation {
 	private double baseAverage;
 	private String calculationFunction;
 	private String calculationClass;
+	private EquationType type = EquationType.REVERSE;
 
 	private Method calculationMethod;
 
@@ -185,6 +186,14 @@ public class Equation {
 		this.constant = constant;
 	}
 
+	public EquationType getType() {
+		return type;
+	}
+
+	public void setType(EquationType type) {
+		this.type = type;
+	}
+
 	public ICalculation getCalculation() {
 		if (calculation == null) {
 			if (calculationClass != null) {
@@ -258,12 +267,23 @@ public class Equation {
 			isUpTick = true;
 		} else {
 			baseValue = previousDatum.getBaseValue();
-			if (baseValue >= maxBase) {
-				isUpTick = false;
-			} else if (baseValue <= minBase) {
+			switch (type) {
+			case REPEAT:
+				if (baseValue >= maxBase) {
+					baseValue = minBase;
+				}
 				isUpTick = true;
-			} else {
-				isUpTick = previousDatum.isUpTick();
+				break;
+			case REVERSE:
+			default:
+				if (baseValue >= maxBase) {
+					isUpTick = false;
+				} else if (baseValue <= minBase) {
+					isUpTick = true;
+				} else {
+					isUpTick = previousDatum.isUpTick();
+				}
+				break;
 			}
 			if (isUpTick) {
 				baseValue += baseSpread;
@@ -293,12 +313,23 @@ public class Equation {
 			isUpTick = true;
 		} else {
 			baseValue = previousDatum.getBaseValue();
-			if (baseValue >= maxBase) {
-				isUpTick = false;
-			} else if (baseValue <= minBase) {
+			switch (type) {
+			case REPEAT:
+				if (baseValue >= maxBase) {
+					baseValue = minBase;
+				}
 				isUpTick = true;
-			} else {
-				isUpTick = previousDatum.isUpTick();
+				break;
+			case REVERSE:
+			default:
+				if (baseValue >= maxBase) {
+					isUpTick = false;
+				} else if (baseValue <= minBase) {
+					isUpTick = true;
+				} else {
+					isUpTick = previousDatum.isUpTick();
+				}
+				break;
 			}
 			if (isUpTick) {
 				baseValue += baseSpread;
@@ -343,6 +374,10 @@ public class Equation {
 				+ calculationMethod + ", calculation=" + calculation + ", getCalculation()=" + getCalculation()
 				+ ", getCalculationMethod()=" + getCalculationMethod() + ", getClass()=" + getClass() + ", hashCode()="
 				+ hashCode() + ", toString()=" + super.toString() + "]";
+	}
+
+	public static enum EquationType {
+		REPEAT, REVERSE
 	}
 
 }

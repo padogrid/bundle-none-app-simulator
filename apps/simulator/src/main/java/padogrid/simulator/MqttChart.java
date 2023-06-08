@@ -48,7 +48,7 @@ import padogrid.mqtt.client.cluster.config.ClusterConfig;
 
 public class MqttChart extends Application implements Constants {
 
-	static int WINDOW_SIZE = 100;
+	static int WINDOW_SIZE = 200;
 	static XYChart.Series<String, Number> series;
 
 	static String topicFilter = null;

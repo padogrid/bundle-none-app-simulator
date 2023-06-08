@@ -9,6 +9,26 @@ equations:
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: java.lang.Math.sin
+  - name: dampedSineWave
+    formula: y=2e^(-2x)sin(2*pi*x/.5)
+    description: sin
+    startTime: -1
+    timeInterval: 500
+    minBase: 0
+    maxBase: 2
+    baseSpread: 0.1
+    jitter: 0.1
+    calculationFunction: padogrid.simulator.eq.Equations.dampedSineWave
+  - name: heartbeat
+    formula: y=sin(x)^63*sin(x+1.5)*8
+    description: heartbeat
+    timeInterval: 500
+    minBase: 0
+    maxBase: 2
+    baseSpread: 0.05
+    jitter: 0
+    calculationFunction: padogrid.simulator.eq.Equations.heartbeat
+    type: REPEAT
   - name: tan
     formula: y=tan(x)
     description: tan
@@ -39,6 +59,15 @@ equations:
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.circle
+  - name: decay
+    formula: y=sqrt(1-x*x)
+    description: decay
+    timeInterval: 500
+    minBase: 0
+    maxBase: 1000
+    baseSpread: 0.1
+    jitter: 0.1
+    calculationFunction: padogrid.simulator.eq.Equations.decay
   - name: linear
     formula: y=x+1
     description: linear
@@ -113,20 +142,32 @@ equations:
 publishers:        
   # MQTT
   - product: mqtt
-    name: sin-publisher
-    equationName: sin
+    name: dampedSineWave-publisher
+    equationName: dampedSineWave
+    dataStructure:
+      type: topic
+      name: test/dampedSineWave
+    interval: 500
+  - product: mqtt
+    name: dampedSineWave-publisher
+    equationName: dampedSineWave
     dataStructure:
       type: topic
       name: test/sin
-    initialDelay: 1000
     interval: 500
+  - product: mqtt
+    name: heartbeat-publisher
+    equationName: heartbeat
+    dataStructure:
+      type: topic
+      name: test/heartbeat
+    interval: 40
   - product: mqtt
     name: tan-publisher
     equationName: tan
     dataStructure:
       type: topic
       name: test/tan
-    initialDelay: 1000
     interval: 500
   - product: mqtt
     name: tanh-publisher
@@ -148,6 +189,13 @@ publishers:
     dataStructure:
       type: topic
       name: test/circle
+    interval: 500
+  - product: mqtt
+    name: decay-publisher
+    equationName: decay
+    dataStructure:
+      type: topic
+      name: test/decay
     interval: 500
   - product: mqtt
     name: linear-publisher

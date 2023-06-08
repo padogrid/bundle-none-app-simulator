@@ -28,7 +28,7 @@ import padogrid.simulator.config.SimulatorConfig;
 import padogrid.simulator.config.SimulatorConfig.DataStructure;
 import padogrid.simulator.config.SimulatorConfig.Publisher;
 
-public class ClusterSimulator implements Constants {
+public class DataFeedSimulator implements Constants {
 
 	private SimulatorConfig simulatorConfig;
 	private HashMap<String, Equation> equationMap = new HashMap<String, Equation>(10);
@@ -39,7 +39,8 @@ public class ClusterSimulator implements Constants {
 	private String configFilePath;
 	private boolean isQuiet;
 
-	public ClusterSimulator(String product, String clusterName, String configFilePath, boolean isQuiet) throws FileNotFoundException {
+	public DataFeedSimulator(String product, String clusterName, String configFilePath, boolean isQuiet)
+			throws FileNotFoundException {
 		this.product = product;
 		this.clusterName = clusterName;
 		this.configFilePath = configFilePath;
@@ -62,7 +63,7 @@ public class ClusterSimulator implements Constants {
 			InputStream inputStream = ClusterService.class.getClassLoader()
 					.getResourceAsStream(ISimulatorConfig.DEFAULT_SIMULATOR_CONFIG_FILE);
 			if (inputStream != null) {
-				Yaml yaml = new Yaml(new Constructor(ClusterConfig.class));
+				Yaml yaml = new Yaml(new Constructor(SimulatorConfig.class));
 				yaml.setBeanAccess(BeanAccess.FIELD);
 				simulatorConfig = yaml.load(inputStream);
 			}
@@ -131,7 +132,15 @@ public class ClusterSimulator implements Constants {
 			count = 0;
 			for (Publisher publisher : publishers) {
 				if (product.equalsIgnoreCase(publisher.getProduct())) {
-					count++;
+					String equationName = publisher.getEquationName();
+					Equation equation = getEquation(equationName);
+					if (equation == null) {
+						System.err.printf(
+								"ERROR: Equation undefined for the publisher [product=%s, publisher=%s, equationName=%s]. Publisher discarded.%n",
+								product, publisher.getName(), equationName);
+					} else {
+						count++;
+					}
 				}
 			}
 		} else {
@@ -141,10 +150,13 @@ public class ClusterSimulator implements Constants {
 		// Launch publisher threads
 		ScheduledExecutorService ses = Executors.newScheduledThreadPool(count);
 		for (Publisher publisher : publishers) {
+			Equation equation = getEquation(publisher.getEquationName());
+			if (equation == null) {
+				continue;
+			}
 			if (product == null || (product != null && product.equalsIgnoreCase(publisher.getProduct()))) {
 				ses.scheduleAtFixedRate(new Runnable() {
 					
-					Equation equation = getEquation(publisher.getEquationName());
 					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 							equation.getTimeFormat() == null ? "yyyy-MM-dd'T'HH:mm:ss.SSSZ" : equation.getTimeFormat());
 					Datum datum = new Datum(equation);
@@ -294,7 +306,7 @@ public class ClusterSimulator implements Constants {
 		}
 
 		try {
-			ClusterSimulator simulator = new ClusterSimulator(product, clusterName, configFilePath, isQuiet);
+			DataFeedSimulator simulator = new DataFeedSimulator(product, clusterName, configFilePath, isQuiet);
 			simulator.start();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

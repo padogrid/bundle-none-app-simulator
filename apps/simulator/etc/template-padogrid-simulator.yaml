@@ -65,6 +65,12 @@ equations:
     # Default: 0
     constant: 0
 
+    # Optional cycle type. Valid values are REPEAT, REVERSE (case sensitive). If REPEAT, each
+    # caculation cycle increases the base value starting from minBase. If REVERSE, upon reaching the
+    # maxBase value, the caculation cycle is reversed by decrementing the base value.
+    # Default: REVERSE
+    type: REVERSE
+
 publishers:        
   # MQTT
     # Required product name.
