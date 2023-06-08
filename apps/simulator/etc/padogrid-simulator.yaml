@@ -142,18 +142,18 @@ equations:
 publishers:        
   # MQTT
   - product: mqtt
-    name: dampedSineWave-publisher
-    equationName: dampedSineWave
+    name: in-publisher
+    equationName: in
     dataStructure:
       type: topic
-      name: test/dampedSineWave
+      name: test/in
     interval: 500
   - product: mqtt
     name: dampedSineWave-publisher
     equationName: dampedSineWave
     dataStructure:
       type: topic
-      name: test/sin
+      name: test/dampedSineWave
     interval: 500
   - product: mqtt
     name: heartbeat-publisher
