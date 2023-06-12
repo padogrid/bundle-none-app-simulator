@@ -30,7 +30,9 @@ else
 fi
 export LOG_FILE
 
-export PADOGRID_TOPIC_PREFIX="edge"
+if [ "$PADOGRID_TOPIC_PREFIX" == "" ]; then
+   export PADOGRID_TOPIC_PREFIX="edge"
+fi
 
 # Paho logging
 PAHO_LOG_CONFIG_FILE="$APP_ETC_DIR/paho-logging-$EXECUTABLE.properties"
