@@ -30,8 +30,14 @@ else
 fi
 export LOG_FILE
 
+# Topic prefix and config file path. Used by padogrid-mqtt containers.
 if [ "$PADOGRID_TOPIC_PREFIX" == "" ]; then
    export PADOGRID_TOPIC_PREFIX="edge"
+fi
+
+PADOGRID_SIMULATOR_CONFIG_ARG=""
+if [ "$CONFIG_ARG" == "" ] && [ "$PADOGRID_SIMULATOR_CONFIG_FILE" != "" ]; then
+   PADOGRID_SIMULATOR_CONFIG_ARG="-config $PADOGRID_SIMULATOR_CONFIG_FILE"
 fi
 
 # Paho logging
@@ -54,4 +60,4 @@ if [[ "$JAVA_VERSION" != "1.8"* ]]; then
    JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
 fi
 
-"$JAVA" $JAVA_OPTS padogrid.simulator.DataFeedSimulator "$@"
+"$JAVA" $JAVA_OPTS padogrid.simulator.DataFeedSimulator $PADOGRID_SIMULATOR_CONFIG_ARG "$@"
