@@ -30,6 +30,8 @@ else
 fi
 export LOG_FILE
 
+export PADOGRID_EDGE_PREFIX="edge"
+
 # Paho logging
 PAHO_LOG_CONFIG_FILE="$APP_ETC_DIR/paho-logging-$EXECUTABLE.properties"
 JAVA_OPTS="$JAVA_OPTS -Djava.util.logging.config.file=$PAHO_LOG_CONFIG_FILE"

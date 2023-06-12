@@ -1,5 +1,6 @@
 package padogrid.simulator.config;
 
+import padogrid.mqtt.client.cluster.internal.ConfigUtil;
 import padogrid.simulator.Equation;
 
 public class SimulatorConfig {
@@ -32,7 +33,7 @@ public class SimulatorConfig {
 		private long count = Long.MAX_VALUE;
 
 		public String getProduct() {
-			return product;
+			return ConfigUtil.parseStringValue(product);
 		}
 
 		public void setProduct(String product) {
@@ -40,7 +41,7 @@ public class SimulatorConfig {
 		}
 
 		public String getName() {
-			return name;
+			return ConfigUtil.parseStringValue(name);
 		}
 
 		public void setName(String name) {
@@ -48,7 +49,11 @@ public class SimulatorConfig {
 		}
 
 		public String getEquationName() {
-			return equationName;
+			return ConfigUtil.parseStringValue(equationName);
+		}
+
+		public void setEquationName(String equationName) {
+			this.equationName = equationName;
 		}
 
 		public void setEquation(String equationName) {
@@ -86,28 +91,26 @@ public class SimulatorConfig {
 		public void setDataStructure(DataStructure dataStructure) {
 			this.dataStructure = dataStructure;
 		}
-
-		public void setEquationName(String equationName) {
-			this.equationName = equationName;
-		}
-
 	}
-	
+
 	public static class DataStructure {
 		private String type;
 		private String name;
+
 		public String getType() {
-			return type;
+			return ConfigUtil.parseStringValue(type);
 		}
+
 		public void setType(String type) {
 			this.type = type;
 		}
+
 		public String getName() {
-			return name;
+			return ConfigUtil.parseStringValue(name);
 		}
+
 		public void setName(String name) {
 			this.name = name;
 		}
-
 	}
 }

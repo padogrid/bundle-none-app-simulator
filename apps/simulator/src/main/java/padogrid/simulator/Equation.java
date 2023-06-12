@@ -4,6 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Random;
 
+import padogrid.mqtt.client.cluster.internal.ConfigUtil;
+
 public class Equation {
 	private String name;
 	private String formula;
@@ -50,7 +52,7 @@ public class Equation {
 	}
 
 	public String getName() {
-		return name;
+		return ConfigUtil.parseStringValue(name);
 	}
 
 	public void setName(String name) {
@@ -58,7 +60,7 @@ public class Equation {
 	}
 
 	public String getFormula() {
-		return formula;
+		return ConfigUtil.parseStringValue(formula);
 	}
 
 	public void setFormula(String formula) {
@@ -66,7 +68,7 @@ public class Equation {
 	}
 
 	public String getDescription() {
-		return description;
+		return  ConfigUtil.parseStringValue(description);
 	}
 
 	public void setDescription(String description) {
@@ -76,6 +78,8 @@ public class Equation {
 	public String getTimeFormat() {
 		if (timeFormat == null || timeFormat.trim().length() == 0) {
 			timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+		} else {
+			 ConfigUtil.parseStringValue(timeFormat);
 		}
 		return timeFormat;
 	}
@@ -85,7 +89,7 @@ public class Equation {
 	}
 
 	public String getStartTime() {
-		return startTime;
+		return ConfigUtil.parseStringValue(startTime);
 	}
 
 	public void setStartTime(String startTime) {
@@ -125,7 +129,7 @@ public class Equation {
 	}
 
 	public String getCalculationFunction() {
-		return calculationFunction;
+		return ConfigUtil.parseStringValue(calculationFunction);
 	}
 
 	public void setCalculationFunction(String calculationFunction) {
@@ -163,7 +167,7 @@ public class Equation {
 	}
 
 	public String getCalculationClass() {
-		return calculationClass;
+		return ConfigUtil.parseStringValue(calculationClass);
 	}
 
 	public void setCalculationClass(String calculationClass) {
