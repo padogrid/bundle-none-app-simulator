@@ -31,7 +31,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<padogrid.version>0.9.26-SNAPSHOT</padogrid.version>
-		<paho.version>2.0.15</paho.version>
+      <paho.version>1.2.5</paho.version>
 		<snake.version>1.23</snake.version>
 		<skipTests>true</skipTests>
 	</properties>
@@ -45,6 +45,11 @@
 			<artifactId>padogrid-mqtt</artifactId>
 			<version>${padogrid.version}</version>
 		</dependency>
+      <dependency>
+         <groupId>org.eclipse.paho</groupId>
+         <artifactId>org.eclipse.paho.mqttv5.client</artifactId>
+         <version>${paho.version}</version>
+      </dependency>
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
