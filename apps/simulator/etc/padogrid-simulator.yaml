@@ -147,70 +147,70 @@ publishers:
     dataStructure:
       type: topic
       name: test/in
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: dampedSineWave-publisher
     equationName: dampedSineWave
     dataStructure:
       type: topic
       name: test/dampedSineWave
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: heartbeat-publisher
     equationName: heartbeat
     dataStructure:
       type: topic
       name: test/heartbeat
-    interval: 40
+    timeInterval: 40
   - product: mqtt
     name: tan-publisher
     equationName: tan
     dataStructure:
       type: topic
       name: test/tan
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: tanh-publisher
     equationName: tanh
     dataStructure:
       type: topic
       name: test/tanh
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: exp-publisher
     equationName: exp
     dataStructure:
       type: topic
       name: test/exp
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: circle-publisher
     equationName: circle
     dataStructure:
       type: topic
       name: test/circle
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: decay-publisher
     equationName: decay
     dataStructure:
       type: topic
       name: test/decay
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: linear-publisher
     equationName: linear
     dataStructure:
       type: topic
       name: test/linear
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: quadratic-publisher
     equationName: quadratic
     dataStructure:
       type: topic
       name: test/quadratic
-    interval: 500
+    timeInterval: 500
     
   - product: mqtt
     name: cubic-publisher
@@ -218,7 +218,7 @@ publishers:
     dataStructure:
       type: topic
       name: test/cubic
-    interval: 500
+    timeInterval: 500
     
   - product: mqtt
     name: quadratic-publisher
@@ -226,14 +226,14 @@ publishers:
     dataStructure:
       type: topic
       name: test/quadratic
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: quartic-publisher
     equationName: quartic
     dataStructure:
       type: topic
       name: test/quartic
-    interval: 500
+    timeInterval: 500
     
   - product: mqtt
     name: quintic-publisher
@@ -241,46 +241,46 @@ publishers:
     dataStructure:
       type: topic
       name: test/quintic
-    interval: 500  
+    timeInterval: 500  
   - product: mqtt
     name: circle-publisher
     equationName: circle
     dataStructure:
       type: topic
       name: test/circle
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: sextic-publisher
     equationName: sextic
     dataStructure:
       type: topic
       name: test/sextic
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: septic-publisher
     equationName: septic
     dataStructure:
       type: topic
       name: test/septic
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: octic-publisher
     equationName: octic
     dataStructure:
       type: topic
       name: test/octic
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: nontic-publisher
     equationName: nontic
     dataStructure:
       type: topic
       name: test/nontic
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: decic-publisher
     equationName: decic
     dataStructure:
       type: topic
       name: test/decic
-    interval: 500
+    timeInterval: 500

@@ -50,26 +50,26 @@ publishers:
     dataStructure:
       type: topic
       name: test/igloo
-    interval: 500
+    timeInterval: 500
   - product: mqtt
     name: temperature-publisher
     equationName: temperature
     dataStructure:
       type: topic
       name: test/temperature
-    interval: 10
+    timeInterval: 10
   - product: mqtt
     name: carcost-publisher
     equationName: carcost
     dataStructure:
       type: topic
       name: test/carcost
-    interval: 10
+    timeInterval: 10
   - product: mqtt
     name: heartbeat-publisher
     equationName: heartbeat
     dataStructure:
       type: topic
       name: test/heartbeat
-    interval: 40
+    timeInterval: 40
 

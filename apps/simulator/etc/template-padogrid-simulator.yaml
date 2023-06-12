@@ -114,5 +114,5 @@ publishers:
     initialDelay: 0
 
     # Time interval in milliseconds. The publisher periodically publishes data at this
-    # interval.
-    interval: 500
+    # timeInterval.
+    timeInterval: 500

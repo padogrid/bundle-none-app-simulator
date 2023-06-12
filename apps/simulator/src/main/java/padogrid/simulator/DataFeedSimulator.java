@@ -179,7 +179,7 @@ public class DataFeedSimulator implements Constants {
 						}
 					}
 
-				}, publisher.getInitialDelay(), publisher.getInterval(), TimeUnit.MILLISECONDS);
+				}, publisher.getInitialDelay(), publisher.getTimeInterval(), TimeUnit.MILLISECONDS);
 			}
 		}
 	}

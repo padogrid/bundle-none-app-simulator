@@ -28,7 +28,7 @@ public class SimulatorConfig {
 		private String equationName;
 		private DataStructure dataStructure;
 		private int initialDelay = 0;
-		private int interval = 500;
+		private int timeInterval = 500;
 		private long count = Long.MAX_VALUE;
 
 		public String getProduct() {
@@ -63,12 +63,12 @@ public class SimulatorConfig {
 			this.initialDelay = initialDelay;
 		}
 
-		public int getInterval() {
-			return interval;
+		public int getTimeInterval() {
+			return timeInterval;
 		}
 
-		public void setInterval(int interval) {
-			this.interval = interval;
+		public void setTimeInterval(int timeInterval) {
+			this.timeInterval = timeInterval;
 		}
 
 		public long getCount() {
