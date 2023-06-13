@@ -53,7 +53,7 @@ public class Equations {
 	}
 
 	/**
-	 * y=x^2+1
+	 * y=x^2+x+1
 	 */
 	public final static double quadratic(double x) {
 		return Math.pow(x, 2) + x + 1;

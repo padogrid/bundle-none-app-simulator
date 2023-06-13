@@ -76,7 +76,7 @@ equations:
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.linear
   - name: quadratic
-    formula: y=x^2+1
+    formula: y=x^2+x+1
     description: quadratic
     timeInterval: 500
     baseSpread: 0.1
