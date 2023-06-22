@@ -5,7 +5,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class Datum {
-	private long timestamp = System.currentTimeMillis();
+	private long startTimestamp = System.currentTimeMillis();
+	private long timestamp = startTimestamp;
 	private double value;
 	private double baseValue;
 	private boolean isUpTick = true;
@@ -15,6 +16,7 @@ public class Datum {
 
 	/**
 	 * Initializes a new Datum object with the specified equation.
+	 * 
 	 * @param equation Equation
 	 */
 	public Datum(Equation equation) {
@@ -22,12 +24,13 @@ public class Datum {
 		SimpleDateFormat dateFormatter = new SimpleDateFormat(equation.getTimeFormat());
 		if (equation.getStartTime() != null) {
 			try {
-				timestamp = dateFormatter.parse(equation.getStartTime()).getTime();
+				startTimestamp = dateFormatter.parse(equation.getStartTime()).getTime();
+				timestamp = startTimestamp;
 			} catch (ParseException e) {
 				// ignore
 			}
 		}
-		
+
 		if (equation.getCalculation() != null) {
 			value = (double) equation.getCalculation().calculate(baseValue);
 		} else if (equation.getCalculationMethod() != null) {
@@ -40,10 +43,15 @@ public class Datum {
 	}
 
 	public Datum(long timestamp, double value, double baseValue, boolean isUpTick) {
+		this.startTimestamp = timestamp;
 		this.timestamp = timestamp;
 		this.value = value;
 		this.baseValue = baseValue;
 		this.isUpTick = isUpTick;
+	}
+
+	public long getStartTimestamp() {
+		return startTimestamp;
 	}
 
 	public long getTimestamp() {

@@ -27,6 +27,17 @@ public class Equations {
 	public final static double decay(double x) {
 		return Math.exp(-x / 5);
 	}
+	
+	/**
+	 * Exponential decay function
+	 * <p>
+	 * y=e^(-x)
+	 * 
+	 * @param x
+	 */
+	public final static double expDecay(double x) {
+		return Math.exp(-x);
+	}
 
 	/**
 	 * y=2e^(-2x)sin(2*pi*x/.5) <br>

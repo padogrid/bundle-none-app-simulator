@@ -139,13 +139,13 @@ public class MqttChart extends Application implements Constants {
 		writeLine("   - If '-config' is specified and '-cluster' is not specified, then the default");
 		writeLine("     virtual cluster defined in the configuration file is used.");
 		writeLine();
-		writeLine("   - If '-endpoints' is specified then '-cluster' and '-config' are not allowed.");
+		writeLine("   - If '-endpoints' is specified, then '-cluster' and '-config' are not allowed.");
 		writeLine();
 		writeLine("   - If '-cluster', '-config', and '-endpoints' are not specified, then the PadoGrid's");
 		writeLine("     current context cluster is used.");
 		writeLine();
-		writeLine(
-				"   - If PadoGrid cluster is not an MQTT cluster it defaults to endpoints, 'tcp://localhost:1883-1885'.");
+		writeLine("   - If PadoGrid cluster is not an MQTT cluster, then it defaults to endpoints,");
+      writeLine("     'tcp://localhost:1883-1885'.");
 		writeLine();
 		writeLine("OPTIONS");
 		writeLine("   -cluster cluster_name");
@@ -170,10 +170,11 @@ public class MqttChart extends Application implements Constants {
 		writeLine();
 		writeLine("SEE ALSO");
 		writeLine("   simulator(1)");
-		writeLine("   etc/padogrid-simulator.yaml");
-		writeLine("   etc/stocks.yaml");
-		writeLine("   etc/template-padogrid-simulator.yaml");
-		writeLine("   etc/mqttv5-client.yaml");
+		writeLine("   etc/simulator-edge.yaml");
+		writeLine("   etc/simulator-misc.yaml");
+		writeLine("   etc/simulator-padogrid.yaml");
+		writeLine("   etc/simulator-stocks.yaml");
+		writeLine("   etc/template-simulator-padogrid.yaml");
 		writeLine();
 	}
 

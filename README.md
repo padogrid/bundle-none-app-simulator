@@ -13,7 +13,7 @@ install_bundle -download bundle-none-app-simulator
 
 ## Use Case
 
-The Data Feed Simulator publishes numerical data computed by a set of equations. By adding noise (jitter) to the computed values, you can produce simulated for real-world applications. There are a number of useful data feeds are included in this bundle. You can customize them or introduce your own equations generate data that meet your application requirements.
+The Data Feed Simulator publishes numerical data computed by a set of equations. By adding noise (jitter) to the computed values, you can produce simulated data for real-world applications. There are a number of useful data feeds included in this bundle. You can customize them or introduce your own equations to generate based on your application requirements.
 
 ![Igloo](images/igloo.png)
 
@@ -32,13 +32,14 @@ simulator
 │   ├── setenv.sh
 │   └── simulator
 ├── etc
-│   ├── log4j2.properties
-│   ├── misc.yaml
-│   ├── mqttv5-client.yaml
-│   ├── padogrid-simulator.yaml
-│   ├── simulator-logging.properties
-│   ├── stock.yaml
-│   └── template-padogrid-simulator.yaml
+│   ├── log4j2.properties
+│   ├── mqttv5-client.yaml
+│   ├── simulator-edge.yaml
+│   ├── simulator-logging.properties
+│   ├── simulator-misc.yaml
+│   ├── simulator-padogrid.yaml
+│   ├── simulator-stocks.yaml
+│   └── template-simulator-padogrid.yaml
 └── src
     └── main
         └── java
@@ -82,40 +83,40 @@ cd_app simulator/bin_sh
 
 ### 4. Display data in trending chart
 
-By default, the `simulator` command loads the `etc/padogrid-simulator.yaml` file, which defines numerouse equations. Each equation is invoked by the paired publisher which defines the topic to publish the data. Take a look at the configuration file and select the topics that you want to view in charts. 
+By default, the `simulator` command loads the `etc/simulator-padogrid.yaml` file, which defines numerouse equations. Each equation is invoked by the paired publisher which defines the topic to publish the data. Take a look at the configuration file and select the topics that you want to view in charts. 
 
 ```bash
 cd_app simulator/bin_sh
-cat etc/padogrid-simulator.yaml
+cat etc/simulator-padogrid.yaml
 ```
 
 Display the data by running the `chart` command which takes a single topic as an argument. Try running the following examples.
 
 ```bash
 # Display sine wave
-chart -t test/sin
+chart -t test/sine
 
 # Display damped sine wave
 chart -t test/dampedSineWave
 ```
 
-Appliation specific data feeds are defined in `etc/stock.yaml` and `etc/misc.yaml`. Try running them.
+Appliation specific data feeds are defined in `etc/simulator-stock.yaml` and `etc/simulator-misc.yaml`. Try running them.
 
 First start the simulator:
 
 ```bash
-./simulator -config ../etc/stock.yaml
-./simulator -config ../etc/misc.yaml
+./simulator -config ../etc/simulator-stocks.yaml
+./simulator -config ../etc/simulator-misc.yaml
 ```
 
 Run charts:
 
 ```bash
-# Display stock.yaml
-chart -t test/stock
+# Display simulator-stocks.yaml
+chart -t test/stock1
 chart -t test/stock2
 
-# Display misc.yaml
+# Display simulator-misc.yaml
 chart -t /test/igloo
 chart -t test/temperature
 chart -t test/carcost
@@ -124,11 +125,11 @@ chart -t test/heartbeat
 
 ## Tuning data feeds
 
-Each equation defined in the configuration file can be tuned to fit your needs. The [`etc/template-padogrid-simulator.yaml`](apps/simulator/etc/template-padogrid-simulator.yaml) provides detailed parameter descriptions.
+Each equation defined in the configuration file can be tuned to fit your needs. The [`etc/template-simulator-padogrid.yaml`](apps/simulator/etc/template-simulator-padogrid.yaml) provides detailed parameter descriptions.
 
 ```bash
 cd_app simulator
-cat etc/template-padogrid-simulator.yaml
+cat etc/template-simulator-padogrid.yaml
 ```
 
 Output:
@@ -291,10 +292,10 @@ To use your equations, you define them in the configuration file.
 
 ```bash
 cd_app simulator
-vi etc/mydatafeed.yaml
+vi etc/simulator-mydatafeed.yaml
 ```
 
-Enter the following `mydatafeed.yaml`:
+Enter the following `simulator-mydatafeed.yaml`:
 
 ```yaml
 equations:
@@ -334,7 +335,7 @@ Now, run simulator and chart.
 
 ```bash
 cd_app simulator/bin_sh
-./simulator -config ../etc/mydatafeed.yaml
+./simulator -config ../etc/simulator-mydatafeed.yaml
 ./chart -t mydatafeed/linear
 ./chart -t mydatafeed/quadratic
 ```

@@ -53,7 +53,7 @@ JAVA_OPTS="$JAVA_OPTS -Dexecutable.name=$EXECUTABLE"
 # Application specifics
 #
 JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.client.cluster.config.file=$APP_ETC_DIR/mqttv5-client.yaml"
-JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.simulator.config.file=$APP_ETC_DIR/padogrid-simulator.yaml"
+JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.simulator.config.file=$APP_ETC_DIR/simulator-padogrid.yaml"
 
 # To suppress warning jdk11: "FileLock may stop working in future versions of Java #507"
 if [[ "$JAVA_VERSION" != "1.8"* ]]; then

@@ -31,6 +31,7 @@ public class SimulatorConfig {
 		private int initialDelay = 0;
 		private int timeInterval = 500;
 		private long count = Long.MAX_VALUE;
+		private boolean enabled = true;
 
 		public String getProduct() {
 			return ConfigUtil.parseStringValue(product);
@@ -90,6 +91,14 @@ public class SimulatorConfig {
 
 		public void setDataStructure(DataStructure dataStructure) {
 			this.dataStructure = dataStructure;
+		}
+
+		public boolean isEnabled() {
+			return enabled;
+		}
+
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
 		}
 	}
 

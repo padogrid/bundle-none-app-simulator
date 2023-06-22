@@ -1,7 +1,7 @@
 equations:
-  - name: sin
+  - name: sine
     formula: y=sin(x)
-    description: sin
+    description: Sine wave
     startTime: -1
     timeInterval: 500
     minBase: -1
@@ -11,7 +11,7 @@ equations:
     calculationFunction: java.lang.Math.sin
   - name: dampedSineWave
     formula: y=2e^(-2x)sin(2*pi*x/.5)
-    description: sin
+    description: Damped sine wave
     startTime: -1
     timeInterval: 500
     minBase: 0
@@ -60,14 +60,23 @@ equations:
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.circle
   - name: decay
-    formula: y=sqrt(1-x*x)
+    formula: y=e^(-x/5)
     description: decay
     timeInterval: 500
-    minBase: 0
-    maxBase: 1000
+    minBase: -20
+    maxBase: 10
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.decay
+  - name: expDecay
+    formula: y=e^(-x)
+    description: exponential decay
+    timeInterval: 500
+    minBase: -2
+    maxBase: 4
+    baseSpread: 0.1
+    jitter: 0.1
+    calculationFunction: padogrid.simulator.eq.Equations.expDecay
   - name: linear
     formula: y=x+1
     description: linear
@@ -142,145 +151,142 @@ equations:
 publishers:        
   # MQTT
   - product: mqtt
-    name: sin-publisher
-    equationName: sin
+    name: sine-publisher
+    equationName: sine
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/sin
+      name: test/sine
     timeInterval: 500
   - product: mqtt
     name: dampedSineWave-publisher
     equationName: dampedSineWave
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/dampedSineWave
+      name: test/dampedSineWave
     timeInterval: 500
   - product: mqtt
     name: heartbeat-publisher
     equationName: heartbeat
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/heartbeat
+      name: test/heartbeat
     timeInterval: 40
   - product: mqtt
     name: tan-publisher
     equationName: tan
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/tan
+      name: test/tan
     timeInterval: 500
   - product: mqtt
     name: tanh-publisher
     equationName: tanh
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/tanh
+      name: test/tanh
     timeInterval: 500
   - product: mqtt
     name: exp-publisher
     equationName: exp
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/exp
+      name: test/exp
     timeInterval: 500
   - product: mqtt
     name: circle-publisher
     equationName: circle
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/circle
+      name: test/circle
     timeInterval: 500
   - product: mqtt
     name: decay-publisher
     equationName: decay
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/decay
+      name: test/decay
     timeInterval: 500
   - product: mqtt
     name: linear-publisher
     equationName: linear
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/linear
+      name: test/linear
     timeInterval: 500
   - product: mqtt
     name: quadratic-publisher
     equationName: quadratic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/quadratic
+      name: test/quadratic
     timeInterval: 500
-    
   - product: mqtt
     name: cubic-publisher
     equationName: cubic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/cubic
+      name: test/cubic
     timeInterval: 500
-    
   - product: mqtt
     name: quadratic-publisher
     equationName: quadratic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/quadratic
+      name: test/quadratic
     timeInterval: 500
   - product: mqtt
     name: quartic-publisher
     equationName: quartic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/quartic
+      name: test/quartic
     timeInterval: 500
-    
   - product: mqtt
     name: quintic-publisher
     equationName: quintic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/quintic
+      name: test/quintic
     timeInterval: 500  
   - product: mqtt
     name: circle-publisher
     equationName: circle
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/circle
+      name: test/circle
     timeInterval: 500
   - product: mqtt
     name: sextic-publisher
     equationName: sextic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/sextic
+      name: test/sextic
     timeInterval: 500
   - product: mqtt
     name: septic-publisher
     equationName: septic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/septic
+      name: test/septic
     timeInterval: 500
   - product: mqtt
     name: octic-publisher
     equationName: octic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/octic
+      name: test/octic
     timeInterval: 500
   - product: mqtt
     name: nontic-publisher
     equationName: nontic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/nontic
+      name: test/nontic
     timeInterval: 500
   - product: mqtt
     name: decic-publisher
     equationName: decic
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/decic
+      name: test/decic
     timeInterval: 500

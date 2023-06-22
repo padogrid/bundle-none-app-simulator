@@ -7,32 +7,39 @@ equations:
     jitter: 0.1
     multiplier: 10
     calculationFunction: padogrid.simulator.eq.Equations.circle
+
   - name: temperature
     formula: y=sin(x)
-    description: temperature 45-75 F - skews after 1 cycle
-    startTime: "2022-10-10T00:00:00.000-0400"
+    description: temperature 24 - 65 F from 00:00am to 12:00pm. 1000 points per cycle.
+    startTime: "2022-11-10T00:00:00.000-0400"
     # 10 min interval
-    timeInterval: 600000
-    minBase: -0.5
-    maxBase: 0.6
-    baseSpread: 0.013
+    timeInterval: 86_400
+    # -pi/2
+    minBase: -1.57
+    # 3pi/2
+    maxBase: 4.71
+    baseSpread: 0.00628318530718
     jitter: 0.1
-    multiplier: 25
+    multiplier: 20
     constant: 2.2
     calculationFunction: java.lang.Math.sin
+    type: REPEAT
+    resetBaseTime: 86_400_000
+
   - name: carcost
     formula: y=e^(-x)
     description: Car resell value decline. Purchase price $25,000
-    #startTime: "2022-10-10T00:00:00.000-0400"
     # day interval
-    timeInterval: 86400000
+    timeInterval: 86_400_000
     minBase: 0
-    maxBase: -1
-    baseSpread: 0.0013
+    maxBase: 1
+    baseSpread: 0.0010
     jitter: -0.1
     multiplier: 25000
     constant: 0
-    calculationFunction: java.lang.Math.exp
+    calculationFunction: padogrid.simulator.eq.Equations.expDecay
+    type: REPEAT
+
   - name: heartbeat
     formula: y=sin(x)^63*sin(x+1.5)*8
     description: heartbeat
@@ -43,29 +50,37 @@ equations:
     jitter: 0
     calculationFunction: padogrid.simulator.eq.Equations.heartbeat
     type: REPEAT
+
 publishers:
   - product: mqtt
+    enabled: true
     name: igloo-publisher
     equationName: igloo
     dataStructure:
       type: topic
       name: test/igloo
     timeInterval: 500
+
   - product: mqtt
+    enabled: true
     name: temperature-publisher
     equationName: temperature
     dataStructure:
       type: topic
       name: test/temperature
-    timeInterval: 10
+    timeInterval: 200
+
   - product: mqtt
+    enabled: true
     name: carcost-publisher
     equationName: carcost
     dataStructure:
       type: topic
       name: test/carcost
-    timeInterval: 10
+    timeInterval: 100
+
   - product: mqtt
+    enabled: true
     name: heartbeat-publisher
     equationName: heartbeat
     dataStructure:

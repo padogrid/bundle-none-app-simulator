@@ -2,6 +2,7 @@ package padogrid.simulator;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Calendar;
 import java.util.Random;
 
 import padogrid.mqtt.client.cluster.internal.ConfigUtil;
@@ -24,6 +25,7 @@ public class Equation {
 	private String calculationFunction;
 	private String calculationClass;
 	private EquationType type = EquationType.REVERSE;
+	private long resetBaseTime = 0;
 
 	private Method calculationMethod;
 
@@ -68,7 +70,7 @@ public class Equation {
 	}
 
 	public String getDescription() {
-		return  ConfigUtil.parseStringValue(description);
+		return ConfigUtil.parseStringValue(description);
 	}
 
 	public void setDescription(String description) {
@@ -79,7 +81,7 @@ public class Equation {
 		if (timeFormat == null || timeFormat.trim().length() == 0) {
 			timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 		} else {
-			 ConfigUtil.parseStringValue(timeFormat);
+			ConfigUtil.parseStringValue(timeFormat);
 		}
 		return timeFormat;
 	}
@@ -198,6 +200,14 @@ public class Equation {
 		this.type = type;
 	}
 
+	public long getResetBaseTime() {
+		return resetBaseTime;
+	}
+
+	public void setResetBaseTime(long resetBaseTime) {
+		this.resetBaseTime = resetBaseTime;
+	}
+
 	public ICalculation getCalculation() {
 		if (calculation == null) {
 			if (calculationClass != null) {
@@ -261,75 +271,41 @@ public class Equation {
 		return calculationMethod;
 	}
 
-	public Datum createDatum(Datum previousDatum) {
-		double baseValue;
-		long timestamp;
-		boolean isUpTick;
-		if (previousDatum == null) {
-			baseValue = minBase;
-			timestamp = st;
-			isUpTick = true;
-		} else {
-			baseValue = previousDatum.getBaseValue();
-			switch (type) {
-			case REPEAT:
-				if (baseValue >= maxBase) {
-					baseValue = minBase;
-				}
-				isUpTick = true;
-				break;
-			case REVERSE:
-			default:
-				if (baseValue >= maxBase) {
-					isUpTick = false;
-				} else if (baseValue <= minBase) {
-					isUpTick = true;
-				} else {
-					isUpTick = previousDatum.isUpTick();
-				}
-				break;
-			}
-			if (isUpTick) {
-				baseValue += baseSpread;
-			} else {
-				baseValue -= baseSpread;
-			}
-			timestamp = previousDatum.getTimestamp();
-		}
-
-		double value = calculation.calculate(baseValue) + constant;
-
-		value += jitter * random.nextDouble();
-		value *= baseAverage * multiplier;
-
-		timestamp += timeInterval;
-
-		return new Datum(timestamp, value, baseValue, isUpTick);
-	}
-
 	public Datum updateDatum(Datum previousDatum) {
 		double baseValue;
 		long timestamp;
 		boolean isUpTick;
+		boolean isResetBaseTime = false;
 		if (previousDatum == null) {
-			baseValue = minBase;
-			timestamp = st;
-			isUpTick = true;
+			if (maxBase > minBase) {
+				baseValue = minBase;
+				timestamp = st;
+				isUpTick = true;
+			} else {
+				baseValue = maxBase;
+				timestamp = st;
+				isUpTick = true;
+			}
 		} else {
 			baseValue = previousDatum.getBaseValue();
 			switch (type) {
 			case REPEAT:
+				// positive uptick
 				if (baseValue >= maxBase) {
 					baseValue = minBase;
+					isResetBaseTime = resetBaseTime != 0 ? true : false;
 				}
 				isUpTick = true;
 				break;
+				
 			case REVERSE:
 			default:
 				if (baseValue >= maxBase) {
 					isUpTick = false;
+					isResetBaseTime = resetBaseTime != 0 ? true : false;
 				} else if (baseValue <= minBase) {
 					isUpTick = true;
+					isResetBaseTime = resetBaseTime != 0 ? true : false;
 				} else {
 					isUpTick = previousDatum.isUpTick();
 				}
@@ -347,7 +323,7 @@ public class Equation {
 			try {
 				value = (double) calculationMethod.invoke(null, baseValue) + constant;
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				// TODO Auto-generated catch block
+				// TODO: Throw for now
 				e.printStackTrace();
 			}
 		} else if (calculation != null) {
@@ -360,12 +336,57 @@ public class Equation {
 		value += jitter * random.nextDouble();
 		value *= baseAverage * multiplier;
 
-		timestamp += timeInterval;
-		previousDatum.setTimestamp(timestamp);
+		if (isResetBaseTime) {
+			previousDatum = resetBaseTime(previousDatum);
+		} else {
+			timestamp += timeInterval;
+			previousDatum.setTimestamp(timestamp);
+		}
 		previousDatum.setValue(value);
 		previousDatum.setBaseValue(baseValue);
 		previousDatum.setUpTick(isUpTick);
 
+		return previousDatum;
+	}
+
+	/**
+	 * Resets the base time. There is no effect if resetBaseTime = 0.
+	 * 
+	 * Example:
+	 * <ul>
+	 * <li>resetStartTime: 86_400_000 (1 day)</li>
+	 * <li>startTime: "2022-10-10T09:00:00.000-0400"</li>
+	 * <li>base time: "2024-11-11T11:12:34.565-0400"</li>
+	 * <li>new base time: "2024-11-11T09:00:00.000-0400" + resetStartTime</li>
+	 * <li>new base time: "2024-11-12T09:00:00.000-0400"</li>
+	 * </ul>
+	 * 
+	 * @param previousDatum Previous datum
+	 */
+	private Datum resetBaseTime(Datum previousDatum) {
+		if (resetBaseTime == 0) {
+			return previousDatum;
+		}
+		// Get time portion of startTime
+		long startTime = previousDatum.getStartTimestamp();
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(startTime);
+		int hour = calendar.get(Calendar.HOUR); // 12 hour clock
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+		int millisecond = calendar.get(Calendar.MILLISECOND);
+
+		// Set the base time with the time portion of startTime
+		long baseTime = previousDatum.getTimestamp();
+		calendar.setTimeInMillis(baseTime);
+		calendar.set(Calendar.HOUR, hour);
+		calendar.set(Calendar.MINUTE, minute);
+		calendar.set(Calendar.SECOND, second);
+		calendar.set(Calendar.MILLISECOND, millisecond);
+
+		// Add resetBaseTime
+		long newBaseTime = calendar.getTimeInMillis() + resetBaseTime;
+		previousDatum.setTimestamp(newBaseTime);
 		return previousDatum;
 	}
 
@@ -374,10 +395,10 @@ public class Equation {
 		return "Equation [name=" + name + ", formula=" + formula + ", description=" + description + ", timeFormat="
 				+ timeFormat + ", startTime=" + startTime + ", timeInterval=" + timeInterval + ", minBase=" + minBase
 				+ ", maxBase=" + maxBase + ", baseSpread=" + baseSpread + ", jitter=" + jitter + ", baseAverage="
-				+ baseAverage + ", calculationFunction=" + calculationFunction + ", calculationMethod="
-				+ calculationMethod + ", calculation=" + calculation + ", getCalculation()=" + getCalculation()
-				+ ", getCalculationMethod()=" + getCalculationMethod() + ", getClass()=" + getClass() + ", hashCode()="
-				+ hashCode() + ", toString()=" + super.toString() + "]";
+				+ baseAverage + ", resetBaseTime=" + resetBaseTime + ", calculationFunction=" + calculationFunction
+				+ ", calculationMethod=" + calculationMethod + ", calculation=" + calculation + ", getCalculation()="
+				+ getCalculation() + ", getCalculationMethod()=" + getCalculationMethod() + ", getClass()=" + getClass()
+				+ ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
 	}
 
 	public static enum EquationType {
