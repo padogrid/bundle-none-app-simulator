@@ -63,6 +63,8 @@ public class HazelcastChart extends Application implements Constants {
 	static String chartTitle;
 
 	static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+	
+	static IQueue<HazelcastJsonValue> hzQueue = null;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -94,6 +96,37 @@ public class HazelcastChart extends Application implements Constants {
 
 		// show the stage
 		primaryStage.show();
+		
+		// If queue, let's drain it first.
+		if (hzQueue != null) {
+			HazelcastJsonValue value;
+			do {
+				value = hzQueue.poll();
+				if (value != null) {
+					updateChart(value);
+				}
+			} while (value != null);
+			
+			// Add listener
+			hzQueue.addItemListener(new ItemListener<HazelcastJsonValue>() {
+	
+				@Override
+				public void itemAdded(ItemEvent<HazelcastJsonValue> item) {
+					HazelcastJsonValue value;
+					do {
+						value = hzQueue.poll();
+						if (value != null) {
+							updateChart(value);
+						}
+					} while (value != null);
+				}
+	
+				@Override
+				public void itemRemoved(ItemEvent<HazelcastJsonValue> item) {
+					// ignore
+				}
+			}, false);
+		}
 	}
 
 	@Override
@@ -134,6 +167,11 @@ public class HazelcastChart extends Application implements Constants {
 		writeLine("   -ds map|rmap|queue|topic|rtopic");
 		writeLine("             Data structure type. Default: topic");
 		writeLine();
+		writeLine("   -key key_value");
+		writeLine("             Key value to listen on. This option applies to map and rmap only. If");
+		writeLine("             unspecified, it plots updates for all key values. Specify this option for");
+		writeLine("             data structures configured with 'keyType: FIXED'.");	
+		writeLine();
 		writeLine("SEE ALSO");
 		writeLine("   simulator(1)");
 		writeLine("   etc/hazelcast-client.xml");
@@ -166,6 +204,7 @@ public class HazelcastChart extends Application implements Constants {
 	public static void main(String[] args) {
 		String dsName = null;
 		String dsStr = null;
+		String key = null;
 
 		String arg;
 		for (int i = 0; i < args.length; i++) {
@@ -180,6 +219,10 @@ public class HazelcastChart extends Application implements Constants {
 			} else if (arg.equals("-ds")) {
 				if (i < args.length - 1) {
 					dsStr = args[++i].trim();
+				}
+			} else if (arg.equals("-key")) {
+				if (i < args.length - 1) {
+					key = args[++i].trim();
 				}
 			}
 		}
@@ -203,7 +246,6 @@ public class HazelcastChart extends Application implements Constants {
 		HazelcastInstance hzInstance = HazelcastClient.getOrCreateHazelcastClient();
 		final IMap<String, HazelcastJsonValue> hzMap;
 		final ReplicatedMap<String, HazelcastJsonValue> hzRMap;
-		final IQueue<HazelcastJsonValue> hzQueue;
 		final ITopic<HazelcastJsonValue> hzTopic;
 		final ITopic<HazelcastJsonValue> hzRTopic;
 
@@ -211,24 +253,41 @@ public class HazelcastChart extends Application implements Constants {
 		case MAP:
 		case map:
 			hzMap = hzInstance.getMap(dsName);
-			hzMap.addEntryListener(new EntryAddedListener<String, HazelcastJsonValue>() {
-				@Override
-				public void entryAdded(EntryEvent<String, HazelcastJsonValue> event) {
-					String key = event.getKey();
-					HazelcastJsonValue value = event.getValue();
-					updateChart(value);
-				}
-			}, true);
-			hzMap.addEntryListener(new EntryUpdatedListener<String, HazelcastJsonValue>() {
-
-				@Override
-				public void entryUpdated(EntryEvent<String, HazelcastJsonValue> event) {
-					String key = event.getKey();
-					HazelcastJsonValue value = event.getValue();
-					updateChart(value);
-				}
-			}, true);
-			chartTitle = "Map: " + dsName;
+			if (key == null) {
+				hzMap.addEntryListener(new EntryAddedListener<String, HazelcastJsonValue>() {
+					@Override
+					public void entryAdded(EntryEvent<String, HazelcastJsonValue> event) {
+						HazelcastJsonValue value = event.getValue();
+						updateChart(value);
+					}
+				}, true);
+				hzMap.addEntryListener(new EntryUpdatedListener<String, HazelcastJsonValue>() {
+	
+					@Override
+					public void entryUpdated(EntryEvent<String, HazelcastJsonValue> event) {
+						HazelcastJsonValue value = event.getValue();
+						updateChart(value);
+					}
+				}, true);
+				chartTitle = "Map: " + dsName;
+			} else {
+				hzMap.addEntryListener(new EntryAddedListener<String, HazelcastJsonValue>() {
+					@Override
+					public void entryAdded(EntryEvent<String, HazelcastJsonValue> event) {
+						HazelcastJsonValue value = event.getValue();
+						updateChart(value);
+					}
+				}, key, true);
+				hzMap.addEntryListener(new EntryUpdatedListener<String, HazelcastJsonValue>() {
+					@Override
+					public void entryUpdated(EntryEvent<String, HazelcastJsonValue> event) {
+						HazelcastJsonValue value = event.getValue();
+						updateChart(value);
+					}
+				}, key, true);
+				chartTitle = "Map: " + dsName + " (key=" + key + ")";
+			}
+			
 			break;
 
 		case RMAP:
@@ -281,21 +340,24 @@ public class HazelcastChart extends Application implements Constants {
 		case QUEUE:
 		case queue:
 			hzQueue = hzInstance.getQueue(dsName);
-			hzQueue.addItemListener(new ItemListener<HazelcastJsonValue>() {
-
-				@Override
-				public void itemAdded(ItemEvent<HazelcastJsonValue> item) {
-					HazelcastJsonValue value = hzQueue.poll();
-					if (value != null) {
-						updateChart(value);
-					}
-				}
-
-				@Override
-				public void itemRemoved(ItemEvent<HazelcastJsonValue> item) {
-					// ignore
-				}
-			}, false);
+//			hzQueue.addItemListener(new ItemListener<HazelcastJsonValue>() {
+//
+//				@Override
+//				public void itemAdded(ItemEvent<HazelcastJsonValue> item) {
+//					HazelcastJsonValue value = null;
+//					do {
+//						value = hzQueue.poll();
+//						if (value != null) {
+//							updateChart(value);
+//						}
+//					} while (value != null);
+//				}
+//
+//				@Override
+//				public void itemRemoved(ItemEvent<HazelcastJsonValue> item) {
+//					// ignore
+//				}
+//			}, false);
 			chartTitle = "Qeuue: " + dsName;
 			break;
 

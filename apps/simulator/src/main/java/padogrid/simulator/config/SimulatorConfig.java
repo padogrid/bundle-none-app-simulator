@@ -106,7 +106,7 @@ public class SimulatorConfig {
 		private DsType type = DsType.TOPIC;
 		private String name;
 		private KeyType keyType = KeyType.SEQUENCE;
-		private String keyPrefix = "";
+		private String keyValue = "key";
 		private int keySequenceStart = 1;
 
 		public DsType getType() {
@@ -133,12 +133,15 @@ public class SimulatorConfig {
 			this.keyType = keyType;
 		}
 
-		public String getKeyPrefix() {
-			return keyPrefix;
+		public String getKeyValue() {
+			if (keyValue == null || keyValue.length() == 0) {
+				keyValue = "key";
+			}
+			return keyValue;
 		}
 
-		public void setKeyPrefix(String keyPrefix) {
-			this.keyPrefix = keyPrefix;
+		public void setKeyValue(String keyValue) {
+			this.keyValue = keyValue;
 		}
 
 		public int getKeySequenceStart() {
@@ -159,6 +162,6 @@ public class SimulatorConfig {
 	}
 
 	public static enum KeyType {
-		SEQUENCE, TIME, UUID, sequence, time, uuid
+		FIXED, 	SEQUENCE, TIME, UUID, sequence, time, uuid
 	}
 }

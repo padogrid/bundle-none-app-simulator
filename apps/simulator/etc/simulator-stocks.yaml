@@ -76,29 +76,27 @@ publishers:
       name: stock1
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: stock1-publisher
     equationName: stock1
     dataStructure:
       type: map
       name: stock1
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: stock1-publisher
     equationName: stock1
     dataStructure:
       type: rmap
       name: stock1
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: stock1-publisher
     equationName: stock1
     dataStructure:
@@ -123,29 +121,27 @@ publishers:
       name: stock2
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: stock2-publisher
     equationName: stock2
     dataStructure:
       type: map
       name: stock2
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: stock2-publisher
     equationName: stock2
     dataStructure:
       type: rmap
       name: stock2
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: stock2-publisher
     equationName: stock2
     dataStructure:

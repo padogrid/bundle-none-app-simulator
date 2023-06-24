@@ -119,29 +119,27 @@ publishers:
       name: igloo
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: igloo-publisher
     equationName: igloo
     dataStructure:
       type: map
       name: igloo
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: igloo-publisher
     equationName: igloo
     dataStructure:
       type: rmap
       name: igloo
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: igloo-publisher
     equationName: igloo
     dataStructure:
@@ -167,29 +165,27 @@ publishers:
       name: temperature
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: temperature-publisher
     equationName: temperature
     dataStructure:
       type: map
       name: temperature
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: temperature-publisher
     equationName: temperature
     dataStructure:
       type: rmap
       name: temperature
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: temperature-publisher
     equationName: temperature
     dataStructure:
@@ -215,29 +211,27 @@ publishers:
       name: carcost
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: carcost-publisher
     equationName: carcost
     dataStructure:
       type: map
       name: carcost
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: carcost-publisher
     equationName: carcost
     dataStructure:
       type: rmap
       name: carcost
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: carcost-publisher
     equationName: carcost
     dataStructure:
@@ -263,29 +257,27 @@ publishers:
       name: heartbeat
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: heartbeat-publisher
     equationName: heartbeat
     dataStructure:
       type: map
       name: heartbeat
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: heartbeat-publisher
     equationName: heartbeat
     dataStructure:
       type: rmap
       name: heartbeat
-      keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keyType: FIXED
+      keyValue: key
     timeInterval: 500
   - product: hazelcast
-    enabled: false
+    enabled: true
     name: heartbeat-publisher
     equationName: heartbeat
     dataStructure:

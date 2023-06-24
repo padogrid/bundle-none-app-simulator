@@ -267,14 +267,21 @@ Run Hazelcast charts:
 ./chart_hazelcast -name heartbeat -ds topic
 ```
 
-The configuration files also include Hazelcast data structures other than topics. Do use them, you need to enable them in each file. For example, the following enables temperature for the `map` data structure.
+The provided configuration files also include Hazelcast data structures other than topics.
 
 ```bash
 cd_app simulator
 vi etc/simulator-misc.yaml
 ```
 
-Set `enabled: true` for the `carcost` publisher.
+For Hazelcast `Map` and `Replicated Map`, these files have been configured with `keyType: FIXED` to update the same key. You can optionally, specify the '-key' option to plot updates on the specified key.
+
+```bash
+cd_app simulator/bin_sh
+./chart_hazelcast -name carcost -ds map -key key
+```
+
+To configure key types other than 'FIXED', please see  `etc/template-simulator-padogrid.yaml` for details. For example, the following sets `keyType: SEQUENCE` to increment the key value starting from 1000.
 
 ```yaml
 publishers:
@@ -287,8 +294,7 @@ publishers:
       type: map
       name: carcost
       keyType: SEQUENCE
-      keyPrefix: k
-      keySequenceStart: 1
+      keySequenceStart: 1000
     timeInterval: 500
 ```
 
@@ -298,6 +304,8 @@ Run Hazelcast chart:
 cd_app simulator/bin_sh
 ./chart_hazelcast -name carcost -ds map
 ```
+
+✏️  Note that `chart_hazelcast` first drains and plots existing entries in the Hazelcast `Queue` data structure before plotting updates.
 
 ## Tuning data feeds
 
@@ -431,13 +439,13 @@ publishers:
     #     dataStructure:
     #       type: MAP|RMAP|QUEUE|TOPIC|RTOPIC
     #       name: <map_name>
-    #       keyType: SEQUENCE|TIME|UUID
+    #       keyType: FIXED|SEQUENCE|TIME|UUID
     #       keyPrefix: null
     #       keySquenceStart: 1
     #     dataStructure:
     #       type: RMAP
     #       name: <replicated_map_name>
-    #       keyType: SEQUENCE|TIME|UUID
+    #       keyType: FIXED|SEQUENCE|TIME|UUID
     #       keyPrefix: null
     #       keySquenceStart: 1
     #     dataStructure:
@@ -462,17 +470,19 @@ publishers:
       # Default: null <undefined>
       name: null
       
-      # Key type. Applies to Hazelcast data structures only.
+      # Key type. Applies to Hazelcast data structures only. All keys are string.
       # Valid values are SEQUENCE|TIME|UUID.
-      #    SEQUENCE - Key values are sequenced starting from keySequenceStart
+      #    FIXED - Key value is a single fixed value. Set keyValue as the key value.
+      #            If keyPrefix is not defined then the key value is set to 'key'.
+      #    SEQUENCE - Key values are sequenced starting from keySequenceStart.
       #    TIME - Key values are time stamps
       #    UUID - Key values are UUID.
       # Default: SEQUENCE
-      keyType: SEQUENCE
+      keyType: FIXED
       
-      # Key prefix. Key values begin with this value.
-      # Default: null (no prefix)
-      keyPrefix: null
+      # Key value for the FIXED key type.
+      # Default: key
+      keyValue: key
       
       # Key squence start number. Key sequence is incremented starting from this number.
       # Default: 1

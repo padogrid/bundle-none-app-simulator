@@ -290,6 +290,10 @@ public class DataFeedSimulator implements Constants {
 								case rmap:
 									String key;
 									switch (ds.getKeyType()) {
+									case FIXED:
+										key = ds.getKeyValue();
+										break;
+										
 									case TIME:
 										key = time;
 										break;
@@ -300,21 +304,21 @@ public class DataFeedSimulator implements Constants {
 
 									case SEQUENCE:
 									default:
-										key = ds.getKeyPrefix() + keySeq;
+										key = Long.toString(keySeq);
 										keySeq++;
 										break;
 									}
 									if (hzMap != null) {
 										hzMap.set(key, value);
 										if (isQuiet == false) {
-											System.out.printf("product=%s, map=%s: %s%n", publisher.getProduct(),
-													hzMap.getName(), json);
+											System.out.printf("product=%s, map=%s: %s, %s%n", publisher.getProduct(),
+													hzMap.getName(), key, json);
 										}
 									} else if (hzRMap != null) {
 										hzRMap.put(key, value);
 										if (isQuiet == false) {
-											System.out.printf("product=%s, rmap=%s: %s%n", publisher.getProduct(),
-													hzRMap.getName(), json);
+											System.out.printf("product=%s, rmap=%s: %s, %s%n", publisher.getProduct(),
+													hzRMap.getName(), key, json);
 										}
 									}
 									break;
