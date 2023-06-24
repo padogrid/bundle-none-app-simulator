@@ -252,6 +252,10 @@ public class MqttChart extends Application implements Constants {
 			System.err.printf("ERROR: Topic filter not specified: [-t].%n");
 			System.exit(3);
 		}
+		if (topicFilter.matches(".*[+#$].*")) {
+			System.err.printf("ERROR: Topic wildcards not allowed [%s].%n", topicFilter);
+			System.exit(4);
+		}
 
 		// Collect system properties - passed in by the invoking script.
 		if (configFilePath == null && clusterName == null) {
