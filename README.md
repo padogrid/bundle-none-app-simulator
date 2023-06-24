@@ -60,12 +60,18 @@ cd_app simulator/bin_sh
 
 ## Startup Sequence
 
-### 1. Start Mosquitto cluster
+### 1. Start Mosquitto and/or Hazelcast
 
 ```bash
+# Mosquitto
 make_cluster -product mosquitto
 switch_cluster mymosquitto
-start_cluster
+start_cluster 
+
+# Hazelcast
+make_cluster -product hazelcast
+switch_cluster myhz
+start_cluster 
 ```
 
 ### 2. Build simulator
