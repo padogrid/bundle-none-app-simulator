@@ -75,7 +75,7 @@ equations:
     # base (x) value reaches 'minBase' or 'maxBase'. The current base time is first reset to the
     # date portion and then this value is added to it as shown in the following example.
     #
-    #   resetStartTime: 86_400_000 (1 day)
+    #   resetBaseTime: 86_400_000 (1 day)
     #   startTime: "2022-10-10T09:00:00.000-0400"
     #   base time: "2024-11-11T11:12:34.565-0400"
     #   new base time: "2024-11-11T09:00:00.000-0400" + resetStartTime
@@ -90,10 +90,10 @@ equations:
     resetBaseTime: 0
 
 publishers:        
-  # MQTT
+    # Product name. Valid values are MQTT|HAZELCAST
     # Required product name.
-    # Valid values are mqtt, hazelcast
-  - product: mqtt
+    # Default: MQTT
+  - product: MQTT
     
     # Optional parameter to enable (true) or disable (false) the publisher.
     # Default: true
@@ -110,25 +110,60 @@ publishers:
     #
     # - mqtt
     #     dataStructure:
-    #       type: topic
+    #       type: TOPIC
     #       name: <topic_name>
     #
     # - hazelcast
+    #     # Hazelcast dataStructure default is TOPIC
     #     dataStructure:
-    #       type: map
+    #       type: MAP|RMAP|QUEUE|TOPIC|RTOPIC
     #       name: <map_name>
+    #       keyType: SEQUENCE|TIME|UUID
+    #       keyPrefix: null
+    #       keySquenceStart: 1
     #     dataStructure:
-    #       type: rmap
+    #       type: RMAP
     #       name: <replicated_map_name>
+    #       keyType: SEQUENCE|TIME|UUID
+    #       keyPrefix: null
+    #       keySquenceStart: 1
     #     dataStructure:
-    #       type: queue
+    #       type: QUEUE
     #       name: <queue_name>
     #     dataStructure:
-    #       type: topic
+    #       type: TOPIC
     #       name: <topic_name>
+    #     dataStructure:
+    #       type: RTOPIC
+    #       name: <reliable_topic_name>
     dataStructure:
-      type: null
+      # Required data structure type.
+      #   MQTT valid valued: TOPIC)
+      #   Hazelcast valid values: MAP|RMAP|QUEUE|TOPIC|RTOPIC
+      # Default: TOPIC
+      type: TOPIC
+      
+      # Required data structure name.
+      #   MQTT: Topic name
+      #   Hazelcast: Name of map, replicated map, queue, topic, or reliable topic
+      # Default: null <undefined>
       name: null
+      
+      # Key type. Applies to Hazelcast data structures only.
+      # Valid values are SEQUENCE|TIME|UUID.
+      #    SEQUENCE - Key values are sequenced starting from keySequenceStart
+      #    TIME - Key values are time stamps
+      #    UUID - Key values are UUID.
+      # Default: SEQUENCE
+      keyType: SEQUENCE
+      
+      # Key prefix. Key values begin with this value.
+      # Default: null (no prefix)
+      keyPrefix: null
+      
+      # Key squence start number. Key sequence is incremented starting from this number.
+      # Default: 1
+      keySquenceStart: 1
     
     # Initial delay in milliseconds. The publisher waits this amount of time before start
     # publishing data.

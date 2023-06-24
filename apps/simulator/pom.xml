@@ -31,8 +31,9 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<padogrid.version>0.9.26-SNAPSHOT</padogrid.version>
-      <paho.version>1.2.5</paho.version>
+		<paho.version>1.2.5</paho.version>
 		<snake.version>1.23</snake.version>
+		<hazelcast.version>5.3.1</hazelcast.version>
 		<skipTests>true</skipTests>
 	</properties>
 
@@ -45,18 +46,26 @@
 			<artifactId>padogrid-mqtt</artifactId>
 			<version>${padogrid.version}</version>
 		</dependency>
-      <dependency>
-         <groupId>org.eclipse.paho</groupId>
-         <artifactId>org.eclipse.paho.mqttv5.client</artifactId>
-         <version>${paho.version}</version>
-      </dependency>
+		<dependency>
+			<groupId>org.eclipse.paho</groupId>
+			<artifactId>org.eclipse.paho.mqttv5.client</artifactId>
+			<version>${paho.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
 			<version>${snake.version}</version>
 			<!--<classifier>android</classifier>-->
 		</dependency>
+		
+		<!-- Hazelcast -->
+		<dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
+        </dependency>
 
+		<!-- JFX for charts -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>

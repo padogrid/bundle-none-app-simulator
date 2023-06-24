@@ -1,5 +1,6 @@
 # Equations for generating stock quotes
 equations:
+
   - name: stock1
     formula: y=tanh(x)
     description: tanh based stock quotes
@@ -14,6 +15,7 @@ equations:
     multiplier: 30
     constant: 1
     calculationFunction: java.lang.Math.tanh
+
   - name: stock2
     formula: y=x^3+x^2+1
     description: cubic based stock quotes
@@ -25,8 +27,14 @@ equations:
     baseSpread: 0.005
     jitter: 0.05
     calculationFunction: padogrid.simulator.eq.Equations.cubic2
+
 publishers:        
+
+  # ---------
   # MQTT
+  # ---------
+
+  # stock1
   - product: mqtt
     enabled: true
     name: stock1-publisher
@@ -35,6 +43,8 @@ publishers:
       type: topic
       name: test/stock1
     timeInterval: 100
+
+  # stock2
   - product: mqtt
     enabled: true
     name: stock2-publisher
@@ -43,3 +53,103 @@ publishers:
       type: topic
       name: test/stock2
     timeInterval: 100
+
+  # ---------
+  # Hazelcast
+  # ---------
+
+  # stock1
+  - product: hazelcast
+    enabled: true
+    name: stock1-publisher
+    equationName: stock1
+    dataStructure:
+      type: topic
+      name: stock1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: true
+    name: stock1-publisher
+    equationName: stock1
+    dataStructure:
+      type: rtopic
+      name: stock1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: stock1-publisher
+    equationName: stock1
+    dataStructure:
+      type: map
+      name: stock1
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: stock1-publisher
+    equationName: stock1
+    dataStructure:
+      type: rmap
+      name: stock1
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: stock1-publisher
+    equationName: stock1
+    dataStructure:
+      type: queue
+      name: stock1
+
+  # stock2
+  - product: hazelcast
+    enabled: true
+    name: stock2-publisher
+    equationName: stock2
+    dataStructure:
+      type: topic
+      name: stock2
+    timeInterval: 500
+  - product: hazelcast
+    enabled: true
+    name: stock2-publisher
+    equationName: stock2
+    dataStructure:
+      type: rtopic
+      name: stock2
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: stock2-publisher
+    equationName: stock2
+    dataStructure:
+      type: map
+      name: stock2
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: stock2-publisher
+    equationName: stock2
+    dataStructure:
+      type: rmap
+      name: stock2
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: stock2-publisher
+    equationName: stock2
+    dataStructure:
+      type: queue
+      name: stock2
+    timeInterval: 500
+    timeInterval: 500

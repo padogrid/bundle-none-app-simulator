@@ -8,24 +8,34 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.paho.mqttv5.common.MqttException;
 import org.json.JSONObject;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.collection.IQueue;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.HazelcastJsonValue;
+import com.hazelcast.map.IMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
+import com.hazelcast.topic.ITopic;
+
 import padogrid.mqtt.client.cluster.ClusterService;
 import padogrid.mqtt.client.cluster.HaClusters;
 import padogrid.mqtt.client.cluster.HaMqttClient;
-import padogrid.mqtt.client.cluster.config.ClusterConfig;
 import padogrid.simulator.config.SimulatorConfig;
 import padogrid.simulator.config.SimulatorConfig.DataStructure;
+import padogrid.simulator.config.SimulatorConfig.DsType;
+import padogrid.simulator.config.SimulatorConfig.Product;
 import padogrid.simulator.config.SimulatorConfig.Publisher;
 
 public class DataFeedSimulator implements Constants {
@@ -34,14 +44,16 @@ public class DataFeedSimulator implements Constants {
 	private HashMap<String, Equation> equationMap = new HashMap<String, Equation>(10);
 	private HaMqttClient haclient;
 
-	private String product;
+	private HazelcastInstance hzInstance;
+
+	private String productName;
 	private String clusterName;
 	private String configFilePath;
 	private boolean isQuiet;
 
-	public DataFeedSimulator(String product, String clusterName, String configFilePath, boolean isQuiet)
+	public DataFeedSimulator(String productName, String clusterName, String configFilePath, boolean isQuiet)
 			throws FileNotFoundException {
-		this.product = product;
+		this.productName = productName;
 		this.clusterName = clusterName;
 		this.configFilePath = configFilePath;
 		this.isQuiet = isQuiet;
@@ -80,24 +92,90 @@ public class DataFeedSimulator implements Constants {
 			}
 		}
 
-		// Initialize HaMqttClient
-		if (product == null || product.equals("mqtt")) {
-			try {
-				if (clusterName == null) {
-					haclient = HaClusters.getHaMqttClient();
-				} else {
-					haclient = HaClusters.getOrCreateHaMqttClient(clusterName);
-				}
-
-				if (haclient == null) {
-					System.err.printf("ERROR: Specified cluster not found [%s]. Command aborted.%n", clusterName);
-					System.exit(-10);
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		// Find if mqtt defined in the config
+		Publisher[] publishers = simulatorConfig.getPublishers();
+		boolean isMqtt = false;
+		boolean isHazelcast = false;
+		for (Publisher publisher : publishers) {
+			isMqtt = publisher.isEnabled()
+					&& (publisher.getProduct() == Product.MQTT || publisher.getProduct() == Product.mqtt);
+			if (isMqtt) {
+				break;
 			}
 		}
+		for (Publisher publisher : publishers) {
+			isHazelcast = publisher.isEnabled()
+					&& (publisher.getProduct() == Product.HAZELCAST || publisher.getProduct() == Product.hazelcast);
+			if (isHazelcast) {
+				break;
+			}
+		}
+
+		// Initialize HaMqttClient
+		if (isMqtt) {
+			if (productName == null || productName.equals("mqtt")) {
+				try {
+					if (clusterName == null) {
+						haclient = HaClusters.getHaMqttClient();
+					} else {
+						haclient = HaClusters.getOrCreateHaMqttClient(clusterName);
+					}
+	
+					if (haclient == null) {
+						System.err.printf("ERROR: Specified cluster not found [%s]. Command aborted.%n", clusterName);
+						System.exit(-10);
+					}
+	
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		// Create hzInstance
+		if (isHazelcast) {
+			if (productName == null || productName.equals("hazelcast")) {
+				try {
+					hzInstance = HazelcastClient.getOrCreateHazelcastClient();
+				} catch (Exception ex) {
+					System.out.printf(
+							"Unable to create Hazelcast client instance [%s]%nHazelcast client is configured in 'etc/hazelcast-client.xml'.%nSkipping Hazelcast...%n",
+							ex.getMessage());
+				}
+			}
+		}
+		
+		// Must have at least one connected product
+		if ((haclient == null || haclient.isConnected() == false) && hzInstance == null) {
+			if (isMqtt) {
+				System.err.printf(
+						"ERROR: Unable to connect to virtual cluster [%s]. Endpoints unreachable %s.%n",
+						haclient.getClusterName(), Arrays.toString(haclient.getServerURIs()));
+			}
+			if (isHazelcast) {
+				System.err.printf("ERROR: Unable to connect to Hazelcast.%n");
+				
+			}
+			System.err.printf("       Command aborted.%n");
+			System.exit(-11);
+		} else {
+			if (isMqtt) {
+				if (haclient == null || haclient.isConnected() == false) {
+					System.out.printf("MQTT: unable to connect to MQTT virtual cluster.%n");
+				} else {
+					System.out.printf("MQTT: MQTT virtual cluster connected. %s%n", Arrays.toString(haclient.getServerURIs()));
+				}
+			}
+			if (isHazelcast) {
+				if (hzInstance == null) {
+					System.out.printf("Hazelcast: unable to connect to Hazelcast cluster.%n");
+				} else {
+					System.out.printf("Hazelcast: Hazelcast cluster connected. %s%n", hzInstance.getCluster().getMembers());
+				}
+			}	
+		}
+
 	}
 
 	/**
@@ -127,55 +205,153 @@ public class DataFeedSimulator implements Constants {
 			System.err.printf("ERROR: Publishers undefined in the configuration file. Command aborted.%n");
 			System.exit(-3);
 		}
-		int count;
-		if (product != null) {
-			count = 0;
-			for (Publisher publisher : publishers) {
-				if (product.equalsIgnoreCase(publisher.getProduct())) {
-					String equationName = publisher.getEquationName();
-					Equation equation = getEquation(equationName);
-					if (equation == null) {
-						System.err.printf(
-								"ERROR: Equation undefined for the publisher [product=%s, publisher=%s, equationName=%s]. Publisher discarded.%n",
-								product, publisher.getName(), equationName);
-					} else if (publisher.isEnabled()) {
-						count++;
-					}
+
+		int count = 0;
+		for (Publisher publisher : publishers) {
+			if (productName == null || productName.equalsIgnoreCase(publisher.getProduct().name())) {
+				String equationName = publisher.getEquationName();
+				Equation equation = getEquation(equationName);
+				if (equation == null) {
+					System.err.printf(
+							"ERROR: Equation undefined for the publisher [product=%s, publisher=%s, equationName=%s]. Publisher discarded.%n",
+							productName, publisher.getName(), equationName);
+				} else if (publisher.isEnabled()) {
+					count++;
 				}
 			}
-		} else {
-			count = publishers.length;
 		}
 
 		// Launch publisher threads
 		ScheduledExecutorService ses = Executors.newScheduledThreadPool(count);
 		for (Publisher publisher : publishers) {
 			Equation equation = getEquation(publisher.getEquationName());
-			if (equation == null || publisher.isEnabled() == false) {
+			if (equation == null || publisher.isEnabled() == false
+					|| ((publisher.getProduct() == Product.HAZELCAST || publisher.getProduct() == Product.hazelcast)
+							&& hzInstance == null)) {
 				continue;
 			}
-			if (product == null || (product != null && product.equalsIgnoreCase(publisher.getProduct()))) {
+			if (productName == null || productName.equalsIgnoreCase(publisher.getProduct().name())) {
 				ses.scheduleAtFixedRate(new Runnable() {
 
 					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
 							equation.getTimeFormat() == null ? "yyyy-MM-dd'T'HH:mm:ss.SSSZ" : equation.getTimeFormat());
 					Datum datum = new Datum(equation);
+					long keySeq = 1;
+
+					IMap<String, HazelcastJsonValue> hzMap = hzInstance != null
+							&& (publisher.getDataStructure().getType() == DsType.MAP
+									|| publisher.getDataStructure().getType() == DsType.map)
+											? hzInstance.getMap(publisher.getDataStructure().getName())
+											: null;
+					ReplicatedMap<String, HazelcastJsonValue> hzRMap = hzInstance != null
+							&& (publisher.getDataStructure().getType() == DsType.RMAP
+									|| publisher.getDataStructure().getType() == DsType.rmap)
+											? hzInstance.getReplicatedMap(publisher.getDataStructure().getName())
+											: null;
+					ITopic<HazelcastJsonValue> hzTopic = hzInstance != null
+							&& (publisher.getDataStructure().getType() == DsType.TOPIC
+									|| publisher.getDataStructure().getType() == DsType.topic)
+											? hzInstance.getTopic(publisher.getDataStructure().getName())
+											: null;
+					ITopic<HazelcastJsonValue> hzRTopic = hzInstance != null
+							&& (publisher.getDataStructure().getType() == DsType.RTOPIC
+									|| publisher.getDataStructure().getType() == DsType.rtopic)
+											? hzInstance.getReliableTopic(publisher.getDataStructure().getName())
+											: null;
+					IQueue<HazelcastJsonValue> hzQueue = hzInstance != null
+							&& (publisher.getDataStructure().getType() == DsType.QUEUE
+									|| publisher.getDataStructure().getType() == DsType.queue)
+											? hzInstance.getQueue(publisher.getDataStructure().getName())
+											: null;
 
 					@Override
 					public void run() {
 						DataStructure ds = publisher.getDataStructure();
-						String topic = ds.getName();
 						datum = equation.updateDatum(datum);
 						JSONObject json = new JSONObject();
-						json.put("time", simpleDateFormat.format(datum.getTimestamp()));
+						String time = simpleDateFormat.format(datum.getTimestamp());
+						json.put("time", time);
 						json.put("value", datum.getValue());
+
 						try {
-							haclient.publish(topic, json.toString().getBytes(), 0, false);
-						} catch (MqttException e) {
-							// ignore
-						}
-						if (isQuiet == false) {
-							System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(), topic, json);
+							if (publisher.getProduct() == Product.MQTT || publisher.getProduct() == Product.mqtt) {
+								String topic = ds.getName();
+								haclient.publish(topic, json.toString().getBytes(), 0, false);
+								if (isQuiet == false) {
+									System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(), topic,
+											json);
+								}
+							} else {
+								HazelcastJsonValue value = new HazelcastJsonValue(json.toString());
+								switch (ds.getType()) {
+								case MAP:
+								case RMAP:
+								case map:
+								case rmap:
+									String key;
+									switch (ds.getKeyType()) {
+									case TIME:
+										key = time;
+										break;
+
+									case UUID:
+										key = UUID.randomUUID().toString();
+										break;
+
+									case SEQUENCE:
+									default:
+										key = ds.getKeyPrefix() + keySeq;
+										keySeq++;
+										break;
+									}
+									if (hzMap != null) {
+										hzMap.set(key, value);
+										if (isQuiet == false) {
+											System.out.printf("product=%s, map=%s: %s%n", publisher.getProduct(),
+													hzMap.getName(), json);
+										}
+									} else if (hzRMap != null) {
+										hzRMap.put(key, value);
+										if (isQuiet == false) {
+											System.out.printf("product=%s, rmap=%s: %s%n", publisher.getProduct(),
+													hzRMap.getName(), json);
+										}
+									}
+									break;
+
+								case QUEUE:
+								case queue:
+									hzQueue.offer(value);
+									if (isQuiet == false) {
+										System.out.printf("product=%s, queue=%s: %s%n", publisher.getProduct(),
+												hzQueue.getName(), json);
+									}
+									break;
+
+								case RTOPIC:
+								case rtopic:
+									hzRTopic.publish(value);
+									if (isQuiet == false) {
+										System.out.printf("product=%s, rtopic=%s: %s%n", publisher.getProduct(),
+												hzRTopic.getName(), json);
+									}
+									break;
+
+								case TOPIC:
+								case topic:
+								default:
+									hzTopic.publish(value);
+									if (isQuiet == false) {
+										System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(),
+												hzTopic.getName(), json);
+									}
+									break;
+								}
+							}
+						} catch (Exception ex) {
+							// TODO: Ignore for now
+//							System.err.printf("ERROR: Exception occurred while invoking data structure [%s]%n",
+//									ex.getMessage());
 						}
 					}
 
@@ -243,6 +419,7 @@ public class DataFeedSimulator implements Constants {
 		writeLine();
 		writeLine("   -cluster cluster_name");
 		writeLine("             Connects to the specified cluster defined in the MQTT configuration file.");
+		writeLine("             This option applies to MQTT only. It is ignored for Hazelcast.");
 		writeLine();
 		writeLine("   -config config_file");
 		writeLine("             Optional configuration file. If option is unspecified, then the default");
@@ -263,7 +440,7 @@ public class DataFeedSimulator implements Constants {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		String product = null;
+		String productName = null;
 		String clusterName = null;
 		String configFilePath = null;
 		boolean isQuiet = false;
@@ -276,7 +453,7 @@ public class DataFeedSimulator implements Constants {
 				System.exit(0);
 			} else if (arg.equals("-product")) {
 				if (i < args.length - 1) {
-					product = args[++i].trim();
+					productName = args[++i].trim();
 				}
 			} else if (arg.equals("-cluster")) {
 				if (i < args.length - 1) {
@@ -291,17 +468,12 @@ public class DataFeedSimulator implements Constants {
 			}
 		}
 
-		if (product != null) {
-			if (!product.equalsIgnoreCase("mqtt") && !product.equalsIgnoreCase("hazelcast")) {
-				System.err.printf("ERROR: Unsupported product [%s]. Command aborted.%n", product);
+		if (productName != null) {
+			if (!productName.equalsIgnoreCase("mqtt") && !productName.equalsIgnoreCase("hazelcast")) {
+				System.err.printf("ERROR: Unsupported product [%s]. Command aborted.%n", productName);
 				System.exit(-1);
 			}
-			product = product.toLowerCase();
-			if (product.equalsIgnoreCase("hazelcast")) {
-				System.err.printf(
-						"ERROR: Hazelcast is not supported in this release. A future release is planned. Command aborted.%n");
-				System.exit(-1);
-			}
+			productName = productName.toLowerCase();
 		}
 		if (configFilePath != null) {
 			File file = new File(configFilePath);
@@ -313,7 +485,7 @@ public class DataFeedSimulator implements Constants {
 		}
 
 		try {
-			DataFeedSimulator simulator = new DataFeedSimulator(product, clusterName, configFilePath, isQuiet);
+			DataFeedSimulator simulator = new DataFeedSimulator(productName, clusterName, configFilePath, isQuiet);
 			simulator.start();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

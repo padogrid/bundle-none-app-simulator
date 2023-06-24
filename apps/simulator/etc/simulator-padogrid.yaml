@@ -290,3 +290,148 @@ publishers:
       type: topic
       name: test/decic
     timeInterval: 500
+
+  # ---------
+  # Hazelcast
+  # ---------
+
+  - product: hazelcast
+    name: sine-publisher
+    equationName: sine
+    dataStructure:
+      type: topic
+      name: test/sine
+    timeInterval: 500
+  - product: hazelcast
+    name: dampedSineWave-publisher
+    equationName: dampedSineWave
+    dataStructure:
+      type: topic
+      name: test/dampedSineWave
+    timeInterval: 500
+  - product: hazelcast
+    name: heartbeat-publisher
+    equationName: heartbeat
+    dataStructure:
+      type: topic
+      name: test/heartbeat
+    timeInterval: 40
+  - product: hazelcast
+    name: tan-publisher
+    equationName: tan
+    dataStructure:
+      type: topic
+      name: test/tan
+    timeInterval: 500
+  - product: hazelcast
+    name: tanh-publisher
+    equationName: tanh
+    dataStructure:
+      type: topic
+      name: test/tanh
+    timeInterval: 500
+  - product: hazelcast
+    name: exp-publisher
+    equationName: exp
+    dataStructure:
+      type: topic
+      name: test/exp
+    timeInterval: 500
+  - product: hazelcast
+    name: circle-publisher
+    equationName: circle
+    dataStructure:
+      type: topic
+      name: test/circle
+    timeInterval: 500
+  - product: hazelcast
+    name: decay-publisher
+    equationName: decay
+    dataStructure:
+      type: topic
+      name: test/decay
+    timeInterval: 500
+  - product: hazelcast
+    name: linear-publisher
+    equationName: linear
+    dataStructure:
+      type: topic
+      name: test/linear
+    timeInterval: 500
+  - product: hazelcast
+    name: quadratic-publisher
+    equationName: quadratic
+    dataStructure:
+      type: topic
+      name: test/quadratic
+    timeInterval: 500
+  - product: hazelcast
+    name: cubic-publisher
+    equationName: cubic
+    dataStructure:
+      type: topic
+      name: test/cubic
+    timeInterval: 500
+  - product: hazelcast
+    name: quadratic-publisher
+    equationName: quadratic
+    dataStructure:
+      type: topic
+      name: test/quadratic
+    timeInterval: 500
+  - product: hazelcast
+    name: quartic-publisher
+    equationName: quartic
+    dataStructure:
+      type: topic
+      name: test/quartic
+    timeInterval: 500
+  - product: hazelcast
+    name: quintic-publisher
+    equationName: quintic
+    dataStructure:
+      type: topic
+      name: test/quintic
+    timeInterval: 500  
+  - product: hazelcast
+    name: circle-publisher
+    equationName: circle
+    dataStructure:
+      type: topic
+      name: test/circle
+    timeInterval: 500
+  - product: hazelcast
+    name: sextic-publisher
+    equationName: sextic
+    dataStructure:
+      type: topic
+      name: test/sextic
+    timeInterval: 500
+  - product: hazelcast
+    name: septic-publisher
+    equationName: septic
+    dataStructure:
+      type: topic
+      name: test/septic
+    timeInterval: 500
+  - product: hazelcast
+    name: octic-publisher
+    equationName: octic
+    dataStructure:
+      type: topic
+      name: test/octic
+    timeInterval: 500
+  - product: hazelcast
+    name: nontic-publisher
+    equationName: nontic
+    dataStructure:
+      type: topic
+      name: test/nontic
+    timeInterval: 500
+  - product: hazelcast
+    name: decic-publisher
+    equationName: decic
+    dataStructure:
+      type: topic
+      name: test/decic
+    timeInterval: 500

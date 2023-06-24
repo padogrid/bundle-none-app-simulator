@@ -32,5 +32,6 @@ fi
 # Log properties for log4j2. The log file name is set in executable scripts.
 JAVA_OPTS="$JAVA_OPTS -Dhazelcast.logging.type=log4j2 \
    -Dlog4j.configurationFile=file:$LOG_CONFIG_FILE"
+JAVA_OPTS="$JAVA_OPTS -Dhazelcast.client.config=$APP_ETC_DIR/hazelcast-client.xml"
 
 CLASSPATH="$APP_DIR/lib/*:$CLASSPATH"

@@ -1,9 +1,10 @@
 ![PadoGrid](https://github.com/padogrid/padogrid/raw/develop/images/padogrid-3d-16x16.png) [*PadoGrid*](https://github.com/padogrid) | [*Catalogs*](https://github.com/padogrid/catalog-bundles/blob/master/all-catalog.md) | [*Manual*](https://github.com/padogrid/padogrid/wiki) | [*FAQ*](https://github.com/padogrid/padogrid/wiki/faq) | [*Releases*](https://github.com/padogrid/padogrid/releases) | [*Templates*](https://github.com/padogrid/padogrid/wiki/Using-Bundle-Templates) | [*Pods*](https://github.com/padogrid/padogrid/wiki/Understanding-Padogrid-Pods) | [*Kubernetes*](https://github.com/padogrid/padogrid/wiki/Kubernetes) | [*Docker*](https://github.com/padogrid/padogrid/wiki/Docker) | [*Apps*](https://github.com/padogrid/padogrid/wiki/Apps) | [*Quick Start*](https://github.com/padogrid/padogrid/wiki/Quick-Start)
 
 ---
+
 # Data Feed Simulator
 
-This bundle includes a data feed simulator for generating continous numerical data.
+This bundle includes a data feed simulator for generating continous numerical data for MQTT and Hazelcast.
 
 ## Installing Bundle
 
@@ -19,19 +20,22 @@ The Data Feed Simulator publishes numerical data computed by a set of equations.
 
 ## Required Software
 
-- PadoGrid 0.9.25+
+- PadoGrid 0.9.26+
 - Mosquitto 2.x
+- Hazelcast 5.x
 
 ## Bundle Contents
 
 ```console
 simulator
 ├── bin_sh
-│   ├── build_app
-│   ├── chart
-│   ├── setenv.sh
-│   └── simulator
+│   ├── build_app
+│   ├── chart_hazelcast
+│   ├── chart_mqtt
+│   ├── setenv.sh
+│   └── simulator
 ├── etc
+│   ├── hazelcast-client.xml
 │   ├── log4j2.properties
 │   ├── mqttv5-client.yaml
 │   ├── simulator-edge.yaml
@@ -39,7 +43,7 @@ simulator
 │   ├── simulator-misc.yaml
 │   ├── simulator-padogrid.yaml
 │   ├── simulator-stocks.yaml
-│   └── template-simulator-padogrid.yaml
+│   └── template-simulator-padogrid.yaml
 └── src
     └── main
         └── java
@@ -64,21 +68,19 @@ switch_cluster mymosquitto
 start_cluster
 ```
 
-### 2. Start simulator
+### 2. Build simulator
 
 ```bash
 # First, build the simulator. The following compiles the provided simulator source code.
 cd_app simulator/bin_sh
 ./build_app
-
-# Start simulator
-./simulator
 ```
 
 ### 3. Start simulator
 
 ```bash
 cd_app simulator/bin_sh
+./simulator
 ```
 
 ### 4. Display data in trending chart
@@ -86,21 +88,143 @@ cd_app simulator/bin_sh
 By default, the `simulator` command loads the `etc/simulator-padogrid.yaml` file, which defines numerouse equations. Each equation is invoked by the paired publisher which defines the topic to publish the data. Take a look at the configuration file and select the topics that you want to view in charts. 
 
 ```bash
-cd_app simulator/bin_sh
+cd_app simulator
 cat etc/simulator-padogrid.yaml
 ```
 
-Display the data by running the `chart` command which takes a single topic as an argument. Try running the following examples.
+#### 4.1. Display MQTT data in trending chart
+
+Display the MQTT data by running the `chart_mqtt` command which takes a single topic as an argument.
+
+```bash
+./chart_mqtt -?
+```
+
+Output:
+
+```console
+NAME
+   chart_mqtt - Chart the MQTT data published by the simulator
+
+SNOPSIS
+   chart_mqtt [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]] [-fos fos] [-qos qos] -t topic_filter [-?]
+
+DESCRIPTION
+   Charts the MQTT data published by the simulator.
+
+   - If '-cluster' is specified and -config is not specified, then '-cluster'
+     represents a PadoGrid cluster and maps it to a unique virtual cluster name.
+
+   - If '-config' is specified, then '-cluster' represents a virtual cluster
+     defined in the configuration file.
+
+   - If '-config' is specified and '-cluster' is not specified, then the default
+     virtual cluster defined in the configuration file is used.
+
+   - If '-endpoints' is specified, then '-cluster' and '-config' are not allowed.
+
+   - If '-cluster', '-config', and '-endpoints' are not specified, then the PadoGrid's
+     current context cluster is used.
+
+   - If PadoGrid cluster is not an MQTT cluster, then it defaults to endpoints,
+     'tcp://localhost:1883-1885'.
+
+OPTIONS
+   -cluster cluster_name
+             Connects to the specified PadoGrid cluster. Exits if it does not exist in the
+             current workspace.
+
+   -endpoints serverURIs
+             Connects to the specified endpoints. Exits if none of the endpoints exist.
+             Default: tcp://localhost:1883-1885
+
+   -config config_file
+             Optional HaMqttClient configuration file.
+
+   -fos fos
+             Optional FoS value. Valid values are 0, 1, 2, 3. Default: 0.
+
+   -qos qos
+             Optional QoS value. Valid values are 0, 1, 2. Default: 0.
+
+   -t topic_filter
+             Topic filter.
+
+SEE ALSO
+   simulator(1)
+   etc/mqttv5-client.yaml
+   etc/simulator-edge.yaml
+   etc/simulator-misc.yaml
+   etc/simulator-padogrid.yaml
+   etc/simulator-stocks.yaml
+   etc/template-simulator-padogrid.yaml
+```
+
+Try running the following examples.
 
 ```bash
 # Display sine wave
-chart -t test/sine
+chart_mqtt -t test/sine
 
 # Display damped sine wave
-chart -t test/dampedSineWave
+chart_mqtt -t test/dampedSineWave
 ```
 
-Appliation specific data feeds are defined in `etc/simulator-stock.yaml` and `etc/simulator-misc.yaml`. Try running them.
+#### 4.2. `chart_hazelcast`
+
+Display the Hazelcast data by running the `chart_hazelcast` command which takes a data structure type and name as arguments.
+
+```bash
+./chart_hazelcast -?
+```
+
+Output:
+
+```console
+NAME
+   chart_hazelcast - Chart the Hazelcast data published by the simulator
+
+SNOPSIS
+   chart_hazelcast -name ds_name [-ds map|rmap|queue|topic|rtopic] [-?]
+
+DESCRIPTION
+   Charts the Hazelcast data published by the simulator.
+
+OPTIONS
+   -name ds_name
+             Data structure name, i.e., topic name, map name, queue name, etc.
+
+   -ds map|rmap|queue|topic|rtopic
+             Data structure type. Default: topic
+
+SEE ALSO
+   simulator(1)
+   etc/hazelcast-client.xml
+   etc/simulator-edge.yaml
+   etc/simulator-misc.yaml
+   etc/simulator-padogrid.yaml
+   etc/simulator-stocks.yaml
+   etc/template-simulator-padogrid.yaml
+```
+
+#### 4.2. Display MQTT data in trending chart
+
+Try running the following examples.
+
+```bash
+# Display sine wave steamed to topic data structure
+chart_hazelcast -name test/sine -ds topic
+
+# Display damped sine wave streamed to topic data structure
+chart_hazelcast -name test/dampedSinewave -ds topic
+
+# Display damped sine wave streamed to map
+chart_hazelcast -name test/dampedSinewave -ds topic
+```
+
+#### 4.3. Simulator configuration files
+
+Application specific data feeds are defined in `etc/simulator-stock.yaml` and `etc/simulator-misc.yaml`. Try running them.
 
 First start the simulator:
 
@@ -109,18 +233,64 @@ First start the simulator:
 ./simulator -config ../etc/simulator-misc.yaml
 ```
 
-Run charts:
+Run MQTT charts:
 
 ```bash
 # Display simulator-stocks.yaml
-chart -t test/stock1
-chart -t test/stock2
+./chart_mqtt -t test/stock1
+./chart_mqtt -t test/stock2
 
 # Display simulator-misc.yaml
-chart -t /test/igloo
-chart -t test/temperature
-chart -t test/carcost
-chart -t test/heartbeat
+./chart_mqtt -t test/igloo
+./chart_mqtt -t test/temperature
+./chart_mqtt -t test/carcost
+./chart_mqtt -t test/heartbeat
+```
+
+Run Hazelcast charts:
+
+```bash
+# Display simulator-stocks.yaml
+./chart_hazelcast -name stock1 -ds topic
+./chart_hazelcast -name stock2 -ds topic
+
+# Display simulator-misc.yaml
+./chart_hazelcast -name igloo -ds topic
+./chart_hazelcast -name temperature -ds topic
+./chart_hazelcast -name carcost -ds topic
+./chart_hazelcast -name heartbeat -ds topic
+```
+
+The configuration files also include Hazelcast data structures other than topics. Do use them, you need to enable them in each file. For example, the following enables temperature for the `map` data structure.
+
+```bash
+cd_app simulator
+vi etc/simulator-misc.yaml
+```
+
+Set `enabled: true` for the `carcost` publisher.
+
+```yaml
+publishers:
+...
+  - product: hazelcast
+    enabled: true
+    name: carcost-publisher
+    equationName: carcost
+    dataStructure:
+      type: map
+      name: carcost
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+```
+
+Run Hazelcast chart:
+
+```bash
+cd_app simulator/bin_sh
+./chart_hazelcast -name carcost -ds map
 ```
 
 ## Tuning data feeds
@@ -208,11 +378,33 @@ equations:
     # Default: REVERSE
     type: REVERSE
 
-publishers:
-  # MQTT
+    # Optional base time reset. This value is added to the 'startTime' adjusted base time when the
+    # base (x) value reaches 'minBase' or 'maxBase'. The current base time is first reset to the
+    # date portion and then this value is added to it as shown in the following example.
+    #
+    #   resetBaseTime: 86_400_000 (1 day)
+    #   startTime: "2022-10-10T09:00:00.000-0400"
+    #   base time: "2024-11-11T11:12:34.565-0400"
+    #   new base time: "2024-11-11T09:00:00.000-0400" + resetStartTime
+    #   new base time: "2024-11-12T09:00:00.000-0400"
+    #
+    # The default value of 0 does nothing and proceeds with the current base time.
+    #
+    # By resetting the base time, you can simulate a realistic time capsule on a window of curve
+    # catured by minBase and maxBase.
+    #
+    # Default: 0
+    resetBaseTime: 0
+
+publishers:        
+    # Product name. Valid values are MQTT|HAZELCAST
     # Required product name.
-    # Valid values are mqtt, hazelcast
-  - product: mqtt
+    # Default: MQTT
+  - product: MQTT
+    
+    # Optional parameter to enable (true) or disable (false) the publisher.
+    # Default: true
+    enabled: true
 
     # Required unique publisher name.
     name: null
@@ -225,34 +417,69 @@ publishers:
     #
     # - mqtt
     #     dataStructure:
-    #       type: topic
+    #       type: TOPIC
     #       name: <topic_name>
     #
     # - hazelcast
+    #     # Hazelcast dataStructure default is TOPIC
     #     dataStructure:
-    #       type: map
+    #       type: MAP|RMAP|QUEUE|TOPIC|RTOPIC
     #       name: <map_name>
+    #       keyType: SEQUENCE|TIME|UUID
+    #       keyPrefix: null
+    #       keySquenceStart: 1
     #     dataStructure:
-    #       type: rmap
+    #       type: RMAP
     #       name: <replicated_map_name>
+    #       keyType: SEQUENCE|TIME|UUID
+    #       keyPrefix: null
+    #       keySquenceStart: 1
     #     dataStructure:
-    #       type: queue
+    #       type: QUEUE
     #       name: <queue_name>
     #     dataStructure:
-    #       type: topic
+    #       type: TOPIC
     #       name: <topic_name>
+    #     dataStructure:
+    #       type: RTOPIC
+    #       name: <reliable_topic_name>
     dataStructure:
-      type: null
+      # Required data structure type.
+      #   MQTT valid valued: TOPIC)
+      #   Hazelcast valid values: MAP|RMAP|QUEUE|TOPIC|RTOPIC
+      # Default: TOPIC
+      type: TOPIC
+      
+      # Required data structure name.
+      #   MQTT: Topic name
+      #   Hazelcast: Name of map, replicated map, queue, topic, or reliable topic
+      # Default: null <undefined>
       name: null
-
+      
+      # Key type. Applies to Hazelcast data structures only.
+      # Valid values are SEQUENCE|TIME|UUID.
+      #    SEQUENCE - Key values are sequenced starting from keySequenceStart
+      #    TIME - Key values are time stamps
+      #    UUID - Key values are UUID.
+      # Default: SEQUENCE
+      keyType: SEQUENCE
+      
+      # Key prefix. Key values begin with this value.
+      # Default: null (no prefix)
+      keyPrefix: null
+      
+      # Key squence start number. Key sequence is incremented starting from this number.
+      # Default: 1
+      keySquenceStart: 1
+    
     # Initial delay in milliseconds. The publisher waits this amount of time before start
     # publishing data.
     # Default: 0
     initialDelay: 0
 
     # Time interval in milliseconds. The publisher periodically publishes data at this
-    # interval.
-    interval: 500
+    # timeInterval.
+    timeInterval: 500
 ```
 
 ## Adding new equations

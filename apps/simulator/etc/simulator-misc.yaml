@@ -52,6 +52,12 @@ equations:
     type: REPEAT
 
 publishers:
+
+  # ---------
+  # MQTT
+  # ---------
+
+  # igloo
   - product: mqtt
     enabled: true
     name: igloo-publisher
@@ -61,6 +67,7 @@ publishers:
       name: test/igloo
     timeInterval: 500
 
+  # temperature
   - product: mqtt
     enabled: true
     name: temperature-publisher
@@ -70,6 +77,7 @@ publishers:
       name: test/temperature
     timeInterval: 200
 
+  # carcost
   - product: mqtt
     enabled: true
     name: carcost-publisher
@@ -79,6 +87,7 @@ publishers:
       name: test/carcost
     timeInterval: 100
 
+  # heartbeat
   - product: mqtt
     enabled: true
     name: heartbeat-publisher
@@ -88,3 +97,198 @@ publishers:
       name: test/heartbeat
     timeInterval: 40
 
+  # ---------
+  # Hazelcast
+  # ---------
+  
+  # igloo
+  - product: hazelcast
+    enabled: true
+    name: igloo-publisher
+    equationName: igloo
+    dataStructure:
+      type: topic
+      name: igloo
+    timeInterval: 500
+  - product: hazelcast
+    enabled: true
+    name: igloo-publisher
+    equationName: igloo
+    dataStructure:
+      type: rtopic
+      name: igloo
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: igloo-publisher
+    equationName: igloo
+    dataStructure:
+      type: map
+      name: igloo
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: igloo-publisher
+    equationName: igloo
+    dataStructure:
+      type: rmap
+      name: igloo
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: igloo-publisher
+    equationName: igloo
+    dataStructure:
+      type: queue
+      name: igloo
+    timeInterval: 500
+
+  # temperature
+  - product: hazelcast
+    enabled: true
+    name: temperature-publisher
+    equationName: temperature
+    dataStructure:
+      type: topic
+      name: temperature
+    timeInterval: 500
+  - product: hazelcast
+    enabled: true
+    name: temperature-publisher
+    equationName: temperature
+    dataStructure:
+      type: rtopic
+      name: temperature
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: temperature-publisher
+    equationName: temperature
+    dataStructure:
+      type: map
+      name: temperature
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: temperature-publisher
+    equationName: temperature
+    dataStructure:
+      type: rmap
+      name: temperature
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: temperature-publisher
+    equationName: temperature
+    dataStructure:
+      type: queue
+      name: temperature
+    timeInterval: 500
+
+  # carcost
+  - product: hazelcast
+    enabled: true
+    name: carcost-publisher
+    equationName: carcost
+    dataStructure:
+      type: topic
+      name: carcost
+    timeInterval: 500
+  - product: hazelcast
+    enabled: true
+    name: carcost-publisher
+    equationName: carcost
+    dataStructure:
+      type: rtopic
+      name: carcost
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: carcost-publisher
+    equationName: carcost
+    dataStructure:
+      type: map
+      name: carcost
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: carcost-publisher
+    equationName: carcost
+    dataStructure:
+      type: rmap
+      name: carcost
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: carcost-publisher
+    equationName: carcost
+    dataStructure:
+      type: queue
+      name: carcost
+    timeInterval: 500
+
+  # heartbeat
+  - product: hazelcast
+    enabled: true
+    name: heartbeat-publisher
+    equationName: heartbeat
+    dataStructure:
+      type: topic
+      name: heartbeat
+    timeInterval: 500
+  - product: hazelcast
+    enabled: true
+    name: heartbeat-publisher
+    equationName: heartbeat
+    dataStructure:
+      type: rtopic
+      name: heartbeat
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: heartbeat-publisher
+    equationName: heartbeat
+    dataStructure:
+      type: map
+      name: heartbeat
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: heartbeat-publisher
+    equationName: heartbeat
+    dataStructure:
+      type: rmap
+      name: heartbeat
+      keyType: SEQUENCE
+      keyPrefix: k
+      keySequenceStart: 1
+    timeInterval: 500
+  - product: hazelcast
+    enabled: false
+    name: heartbeat-publisher
+    equationName: heartbeat
+    dataStructure:
+      type: queue
+      name: heartbeat
+    timeInterval: 500

@@ -24,7 +24,7 @@ public class SimulatorConfig {
 	}
 
 	public static class Publisher {
-		private String product;
+		private Product product = Product.MQTT;
 		private String name;
 		private String equationName;
 		private DataStructure dataStructure;
@@ -33,11 +33,11 @@ public class SimulatorConfig {
 		private long count = Long.MAX_VALUE;
 		private boolean enabled = true;
 
-		public String getProduct() {
-			return ConfigUtil.parseStringValue(product);
+		public Product getProduct() {
+			return product;
 		}
 
-		public void setProduct(String product) {
+		public void setProduct(Product product) {
 			this.product = product;
 		}
 
@@ -103,14 +103,17 @@ public class SimulatorConfig {
 	}
 
 	public static class DataStructure {
-		private String type;
+		private DsType type = DsType.TOPIC;
 		private String name;
+		private KeyType keyType = KeyType.SEQUENCE;
+		private String keyPrefix = "";
+		private int keySequenceStart = 1;
 
-		public String getType() {
-			return ConfigUtil.parseStringValue(type);
+		public DsType getType() {
+			return type;
 		}
 
-		public void setType(String type) {
+		public void setType(DsType type) {
 			this.type = type;
 		}
 
@@ -121,5 +124,41 @@ public class SimulatorConfig {
 		public void setName(String name) {
 			this.name = name;
 		}
+
+		public KeyType getKeyType() {
+			return keyType;
+		}
+
+		public void setKeyType(KeyType keyType) {
+			this.keyType = keyType;
+		}
+
+		public String getKeyPrefix() {
+			return keyPrefix;
+		}
+
+		public void setKeyPrefix(String keyPrefix) {
+			this.keyPrefix = keyPrefix;
+		}
+
+		public int getKeySequenceStart() {
+			return keySequenceStart;
+		}
+
+		public void setKeySequenceStart(int keySequenceStart) {
+			this.keySequenceStart = keySequenceStart;
+		}
+	}
+
+	public enum Product {
+		MQTT, mqtt, HAZELCAST, hazelcast
+	}
+
+	public static enum DsType {
+		MAP, RMAP, QUEUE, TOPIC, RTOPIC, map, rmap, queue, topic, rtopic
+	}
+
+	public static enum KeyType {
+		SEQUENCE, TIME, UUID, sequence, time, uuid
 	}
 }

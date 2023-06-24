@@ -49,4 +49,4 @@ clusters:
     
     connections:
       - connection:
-          serverURIs: [tcp://localhost:1883-1892]
+          serverURIs: [tcp://localhost:1883-1885]

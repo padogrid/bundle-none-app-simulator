@@ -354,7 +354,7 @@ public class Equation {
 	 * 
 	 * Example:
 	 * <ul>
-	 * <li>resetStartTime: 86_400_000 (1 day)</li>
+	 * <li>resetBaseTime: 86_400_000 (1 day)</li>
 	 * <li>startTime: "2022-10-10T09:00:00.000-0400"</li>
 	 * <li>base time: "2024-11-11T11:12:34.565-0400"</li>
 	 * <li>new base time: "2024-11-11T09:00:00.000-0400" + resetStartTime</li>

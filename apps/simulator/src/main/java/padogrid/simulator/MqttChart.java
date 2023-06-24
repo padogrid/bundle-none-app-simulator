@@ -46,6 +46,12 @@ import padogrid.mqtt.client.cluster.IClusterConfig;
 import padogrid.mqtt.client.cluster.IHaMqttCallback;
 import padogrid.mqtt.client.cluster.config.ClusterConfig;
 
+/**
+ * Plots MQTT topic updates.
+ * 
+ * @author dpark
+ *
+ */
 public class MqttChart extends Application implements Constants {
 
 	static int WINDOW_SIZE = 200;
@@ -120,12 +126,11 @@ public class MqttChart extends Application implements Constants {
 		String executable = System.getProperty(PROPERTY_executableName, MqttChart.class.getName());
 		writeLine();
 		writeLine("NAME");
-		writeLine("   " + executable
-				+ " - Chart the MQTT data published by the simulator");
+		writeLine("   " + executable + " - Chart the MQTT data published by the simulator");
 		writeLine();
 		writeLine("SNOPSIS");
 		writeLine("   " + executable
-				+ " [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]] [-fos fos] [-qos qos] [-quiet] -t topic_filter [-?]");
+				+ " [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]] [-fos fos] [-qos qos] -t topic_filter [-?]");
 		writeLine();
 		writeLine("DESCRIPTION");
 		writeLine("   Charts the MQTT data published by the simulator.");
@@ -145,7 +150,7 @@ public class MqttChart extends Application implements Constants {
 		writeLine("     current context cluster is used.");
 		writeLine();
 		writeLine("   - If PadoGrid cluster is not an MQTT cluster, then it defaults to endpoints,");
-      writeLine("     'tcp://localhost:1883-1885'.");
+		writeLine("     'tcp://localhost:1883-1885'.");
 		writeLine();
 		writeLine("OPTIONS");
 		writeLine("   -cluster cluster_name");
@@ -157,7 +162,7 @@ public class MqttChart extends Application implements Constants {
 		writeLine("             Default: tcp://localhost:1883-1885");
 		writeLine();
 		writeLine("   -config config_file");
-		writeLine("             Optional configuration file.");
+		writeLine("             Optional HaMqttClient configuration file.");
 		writeLine();
 		writeLine("   -fos fos");
 		writeLine("             Optional FoS value. Valid values are 0, 1, 2, 3. Default: 0.");
@@ -170,6 +175,7 @@ public class MqttChart extends Application implements Constants {
 		writeLine();
 		writeLine("SEE ALSO");
 		writeLine("   simulator(1)");
+		writeLine("   etc/mqttv5-client.yaml");
 		writeLine("   etc/simulator-edge.yaml");
 		writeLine("   etc/simulator-misc.yaml");
 		writeLine("   etc/simulator-padogrid.yaml");
@@ -405,7 +411,7 @@ public class MqttChart extends Application implements Constants {
 			client.subscribe(topicFilter, qos);
 
 			launch(args);
-			
+
 		} catch (Exception e) {
 			System.err.printf("ERROR: Error occured while subscribing to the topic filter. Command aborted.%n");
 			e.printStackTrace();

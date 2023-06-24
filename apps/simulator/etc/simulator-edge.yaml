@@ -211,7 +211,6 @@ publishers:
       type: topic
       name: ${env:PADOGRID_TOPIC_PREFIX}/quadratic
     timeInterval: 500
-    
   - product: mqtt
     name: cubic-publisher
     equationName: cubic
@@ -219,7 +218,6 @@ publishers:
       type: topic
       name: ${env:PADOGRID_TOPIC_PREFIX}/cubic
     timeInterval: 500
-    
   - product: mqtt
     name: quadratic-publisher
     equationName: quadratic
