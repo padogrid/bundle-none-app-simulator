@@ -23,6 +23,10 @@ ADDON_VERSION=${PADOGRID_COMMON_NAME#padogrid-common-}
 PADOGRID_COMMON_JAR_FILE_PATH="$PADOGRID_HOME/lib/padogrid-common-$ADDON_VERSION.jar"
 PADOGRID_MQTT_JAR_FILE_PATH="$PADOGRID_HOME/mosquitto/lib/padogrid-mqtt-$ADDON_VERSION.jar"
 
+pushd $APP_DIR > /dev/null
+sed -i$__SED_BACKUP -e "s|<padogrid.version>.*$|<padogrid.version>$PADOGRID_VERSION</padogrid.version>|g" pom.xml
+popd > /dev/null
+
 # Install padogrid to the local repo
 mvn install:install-file -Dfile=$PADOGRID_COMMON_JAR_FILE_PATH -DgroupId=padogrid.addon \
     -DartifactId=padogrid-common -Dversion=$ADDON_VERSION -Dpackaging=jar
