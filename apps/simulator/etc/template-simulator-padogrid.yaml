@@ -35,12 +35,12 @@ equations:
     baseSpread: 0.1
 
     # Optional percentage of the random number to add to the equation result before
-    # the base average (maxBase-minBase) is added to the computed value.
+    # the base average, (maxBase-minBase)/2, is added to the computed value.
     # Default: 0.1
     jitter: 0.1
 
-    # Optional multiplier. The jitter computed value is multiplied by this value. Set this attribute
-    # to amplify or deamplify the final value.
+    # Optional multiplier. The jitter computed value is multiplied by this value. Set this
+    # attribute to amplify or deamplify the final value.
     # Default: 1.0
     multiplier: 1.0
 
@@ -60,14 +60,14 @@ equations:
     # calculationClass.
     calculationClass: null
 
-    # Optional constant value. This value is added to the value returned by the calculation function.
-    # Set this attribute to move the curve up or down along the y-axis.
+    # Optional constant value. This value is added to the value returned by the calculation
+    # function. Set this attribute to move the curve up or down along the y-axis.
     # Default: 0
     constant: 0
 
     # Optional cycle type. Valid values are REPEAT, REVERSE (case sensitive). If REPEAT, each
-    # caculation cycle increases the base value starting from minBase. If REVERSE, upon reaching the
-    # maxBase value, the caculation cycle is reversed by decrementing the base value.
+    # caculation cycle increases the base value starting from minBase. If REVERSE, upon reaching
+    # the maxBase value, the caculation cycle is reversed by decrementing the base value.
     # Default: REVERSE
     type: REVERSE
 
