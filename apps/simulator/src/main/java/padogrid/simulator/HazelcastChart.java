@@ -322,14 +322,12 @@ public class HazelcastChart extends Application implements Constants {
 
 				@Override
 				public void entryUpdated(EntryEvent<String, HazelcastJsonValue> event) {
-					String key = event.getKey();
 					HazelcastJsonValue value = event.getValue();
 					updateChart(value);
 				}
 
 				@Override
 				public void entryAdded(EntryEvent<String, HazelcastJsonValue> event) {
-					String key = event.getKey();
 					HazelcastJsonValue value = event.getValue();
 					updateChart(value);
 				}
@@ -340,24 +338,6 @@ public class HazelcastChart extends Application implements Constants {
 		case QUEUE:
 		case queue:
 			hzQueue = hzInstance.getQueue(dsName);
-//			hzQueue.addItemListener(new ItemListener<HazelcastJsonValue>() {
-//
-//				@Override
-//				public void itemAdded(ItemEvent<HazelcastJsonValue> item) {
-//					HazelcastJsonValue value = null;
-//					do {
-//						value = hzQueue.poll();
-//						if (value != null) {
-//							updateChart(value);
-//						}
-//					} while (value != null);
-//				}
-//
-//				@Override
-//				public void itemRemoved(ItemEvent<HazelcastJsonValue> item) {
-//					// ignore
-//				}
-//			}, false);
 			chartTitle = "Qeuue: " + dsName;
 			break;
 

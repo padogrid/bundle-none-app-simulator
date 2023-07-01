@@ -22,9 +22,21 @@ enabled: true
 # Default: cluster-default
 defaultCluster: edge
 
+plugins:
+    # QuestDB connector. Writes simulated data to QuestDB via
+    # ILP(InflucDB Line Protocol) just before published.
+  - name: questdb
+    description: Writes JSON messages to QuestDB
+    enabled: true
+    context: CLUSTER
+    className: padogrid.mqtt.connectors.QuestDbJsonConnector
+    properties:
+      - key: endpoint
+        value: localhost:9009
+
 # Tag name that describes this JVM.
 # Default: cluster-tag
-tag: edge
+tag: edge-questdb
 
 # Cluster probe delay interval in milliseconds. The cluster service periodically
 # probes the endpoints defined in each cluster.
@@ -46,6 +58,9 @@ clusters:
     # that server for all operations.
     # Default: STICKY
     publisherType: ROUND_ROBIN
+    
+    # QuestDB connector. Enable or disable in the 'connectors' element.
+    pluginName: questdb
 
     connections:
       - connection:

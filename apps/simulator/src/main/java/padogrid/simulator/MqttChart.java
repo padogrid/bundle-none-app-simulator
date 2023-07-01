@@ -129,8 +129,8 @@ public class MqttChart extends Application implements Constants {
 		writeLine("   " + executable + " - Chart the MQTT data published by the simulator");
 		writeLine();
 		writeLine("SNOPSIS");
-		writeLine("   " + executable
-				+ " [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]] [-fos fos] [-qos qos] -t topic_filter [-?]");
+		writeLine("   " + executable + " [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]]");
+		writeLine("              [-fos fos] [-qos qos] -t topic_filter [-?]");
 		writeLine();
 		writeLine("DESCRIPTION");
 		writeLine("   Charts the MQTT data published by the simulator.");
@@ -363,12 +363,10 @@ public class MqttChart extends Application implements Constants {
 				try {
 					JSONObject json = new JSONObject(new String(message.getPayload(), StandardCharsets.UTF_8));
 					String time = json.getString("time");
-
 					double value = json.getDouble("value");
 					Platform.runLater(() -> {
 						try {
 							Date date = simpleDateFormat.parse(time);
-							date.getTime();
 							series.getData().add(new XYChart.Data<>(simpleDateFormat.format(date), value));
 							if (series.getData().size() > WINDOW_SIZE)
 								series.getData().remove(0);

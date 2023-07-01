@@ -49,7 +49,8 @@ JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.simulator.config.file=$APP_ETC_DIR/simulat
 
 # To suppress warning jdk11: "FileLock may stop working in future versions of Java #507"
 if [[ "$JAVA_VERSION" != "1.8"* ]]; then
-   JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+   JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
+      --module-path $APP_DIR/lib --add-modules=javafx.controls"
 fi
 
 "$JAVA" $JAVA_OPTS padogrid.simulator.HazelcastChart "$@"

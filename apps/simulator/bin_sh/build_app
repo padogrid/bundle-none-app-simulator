@@ -34,5 +34,12 @@ mvn install:install-file -Dfile=$PADOGRID_MQTT_JAR_FILE_PATH -DgroupId=padogrid.
     -DartifactId=padogrid-mqtt -Dversion=$ADDON_VERSION -Dpackaging=jar
 
 pushd $APP_DIR > /dev/null
-mvn package
+if [ "$CLEAN" == "true" ]; then
+   rm $APP_DIR/lib/*
+   mvn clean
+else
+   mvn package
+   cp $APP_DIR/lib/* $PADOGRID_WORKSPACE/lib/
+fi
 popd > /dev/null
+

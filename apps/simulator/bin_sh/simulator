@@ -51,7 +51,6 @@ JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.logfile=$LOG_FILE"
 JAVA_OPTS="$JAVA_OPTS -Dexecutable.name=$EXECUTABLE"
 
 # Application specifics
-#
 JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.client.cluster.config.file=$APP_ETC_DIR/mqttv5-client.yaml"
 JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.simulator.config.file=$APP_ETC_DIR/simulator-padogrid.yaml"
 

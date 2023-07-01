@@ -12,6 +12,8 @@ This bundle includes a data feed simulator for generating continous numerical da
 install_bundle -download bundle-none-app-simulator
 ```
 
+❗ This bundle is no longer compatible with PadoGrid 0.9.26 due to the recent changes made in the `HaMqttClient` API. Please use PadoGrid 0.9.27-SNAPSHOT or a later version.
+
 ## Use Case
 
 The Data Feed Simulator publishes numerical data computed by a set of equations. By adding noise (jitter) to the computed values, you can produce simulated data for real-world applications. There are a number of useful data feeds included in this bundle. You can customize them or introduce your own equations to generate based on your application requirements.
@@ -20,7 +22,7 @@ The Data Feed Simulator publishes numerical data computed by a set of equations.
 
 ## Required Software
 
-- PadoGrid 0.9.26+
+- PadoGrid 0.9.27-SNAPSHOT+ (07/01/23)
 - Mosquitto 2.x
 - Hazelcast 5.x
 
@@ -77,7 +79,7 @@ start_cluster
 ### 2. Build simulator
 
 ```bash
-# First, build the simulator. The following compiles the provided simulator source code.
+# Build the simulator if you haven't done so already
 cd_app simulator/bin_sh
 ./build_app
 ```
@@ -91,7 +93,7 @@ cd_app simulator/bin_sh
 
 ### 4. Display data in trending chart
 
-By default, the `simulator` command loads the `etc/simulator-padogrid.yaml` file, which defines numerouse equations. Each equation is invoked by the paired publisher which defines the topic to publish the data. Take a look at the configuration file and select the topics that you want to view in charts. 
+By default, the `simulator` command loads the `etc/simulator-padogrid.yaml` file, which defines numerous equations. Each equation is invoked by the paired publisher which defines the topic to publish the data. Take a look at the configuration file and select the topics that you want to view in charts. 
 
 ```bash
 cd_app simulator
@@ -103,6 +105,7 @@ cat etc/simulator-padogrid.yaml
 Display the MQTT data by running the `chart_mqtt` command which takes a single topic as an argument.
 
 ```bash
+cd_app simulator/bin_sh
 ./chart_mqtt -?
 ```
 
@@ -113,7 +116,8 @@ NAME
    chart_mqtt - Chart the MQTT data published by the simulator
 
 SNOPSIS
-   chart_mqtt [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]] [-fos fos] [-qos qos] -t topic_filter [-?]
+   chart_mqtt [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]]
+              [-fos fos] [-qos qos] -t topic_filter [-?]
 
 DESCRIPTION
    Charts the MQTT data published by the simulator.
@@ -155,25 +159,16 @@ OPTIONS
 
    -t topic_filter
              Topic filter.
-
-SEE ALSO
-   simulator(1)
-   etc/mqttv5-client.yaml
-   etc/simulator-edge.yaml
-   etc/simulator-misc.yaml
-   etc/simulator-padogrid.yaml
-   etc/simulator-stocks.yaml
-   etc/template-simulator-padogrid.yaml
 ```
 
 Try running the following examples.
 
 ```bash
 # Display sine wave
-chart_mqtt -t test/sine
+./chart_mqtt -t test/sine
 
 # Display damped sine wave
-chart_mqtt -t test/dampedSineWave
+./chart_mqtt -t test/dampedSineWave
 ```
 
 #### 4.2. `chart_hazelcast`
@@ -203,6 +198,11 @@ OPTIONS
    -ds map|rmap|queue|topic|rtopic
              Data structure type. Default: topic
 
+   -key key_value
+             Key value to listen on. This option applies to map and rmap only. If
+             unspecified, it plots updates for all key values. Specify this option for
+             data structures configured with 'keyType: FIXED'.
+
 SEE ALSO
    simulator(1)
    etc/hazelcast-client.xml
@@ -219,13 +219,10 @@ Try running the following examples.
 
 ```bash
 # Display sine wave steamed to topic data structure
-chart_hazelcast -name test/sine -ds topic
+./chart_hazelcast -name test/sine -ds topic
 
 # Display damped sine wave streamed to topic data structure
-chart_hazelcast -name test/dampedSinewave -ds topic
-
-# Display damped sine wave streamed to map
-chart_hazelcast -name test/dampedSinewave -ds topic
+./chart_hazelcast -name test/dampedSineWave -ds topic
 ```
 
 #### 4.3. Simulator configuration files
@@ -235,8 +232,11 @@ Application specific data feeds are defined in `etc/simulator-stock.yaml` and `e
 First start the simulator:
 
 ```bash
-./simulator -config ../etc/simulator-stocks.yaml
-./simulator -config ../etc/simulator-misc.yaml
+# Stock prices
+./simulator -simulator-config ../etc/simulator-stocks.yaml
+
+# Miscellaneous data. For Hazelcast, publishes data to map, rmap, queue, topic, and rtopic.
+./simulator -simulator-config ../etc/simulator-misc.yaml
 ```
 
 Run MQTT charts:
@@ -260,7 +260,7 @@ Run Hazelcast charts:
 ./chart_hazelcast -name stock1 -ds topic
 ./chart_hazelcast -name stock2 -ds topic
 
-# Display simulator-misc.yaml
+# Display simulator-misc.yaml (publishes data to map, rmap, queue, topic, rtopic)
 ./chart_hazelcast -name igloo -ds topic
 ./chart_hazelcast -name temperature -ds topic
 ./chart_hazelcast -name carcost -ds topic
@@ -307,7 +307,7 @@ cd_app simulator/bin_sh
 
 ✏️  Note that `chart_hazelcast` first drains and plots existing entries in the Hazelcast `Queue` data structure before plotting updates.
 
-## Tuning data feeds
+## Tuning Data Feeds
 
 Each equation defined in the configuration file can be tuned to fit your needs. The [`etc/template-simulator-padogrid.yaml`](apps/simulator/etc/template-simulator-padogrid.yaml) provides detailed parameter descriptions.
 
@@ -498,7 +498,7 @@ publishers:
     timeInterval: 500
 ```
 
-## Adding new equations
+## Adding New Equations
 
 You can add your own equations by creating Java static functions. All equation functions take the following form.
 
@@ -578,10 +578,84 @@ Now, run simulator and chart.
 
 ```bash
 cd_app simulator/bin_sh
-./simulator -config ../etc/simulator-mydatafeed.yaml
-./chart -t mydatafeed/linear
-./chart -t mydatafeed/quadratic
+./simulator -simulator-config ../etc/simulator-mydatafeed.yaml
+./chart_mqtt -t mydatafeed/linear
+./chart_mqtt -t mydatafeed/quadratic
 ```
+
+## QuestDB
+
+QuestDB is an open source columnar time-series database ideal for storing data generated by IoT devices. This bundle includes the [`QuestDbJsonConnector`](apps/simulator/src/main/java/padogrid/mqtt/connectors/QuestDbJsonConnector.java)  plugin that automatcially inserts the MQTT streamed data into QuestDB. 
+
+1. Run QuestDB container
+
+```bash
+docker run -p 9000:9000 -p 9009:9009 -p 8812:8812 questdb/questdb
+```
+
+2. Run simulator
+
+```bash
+cd_app simulator/bin_sh
+./simulator -config ../etc/mqttv5-questdb.yaml -simulator ../etc/simulator-stocks.yaml
+```
+
+3. Open QuestDB console
+
+URL: <http://127.0.0.1:9000/>
+
+
+## Simulator Plugin
+
+This bundle also includes a simulator plugin that can be embedded in virtual clusters. The MQTT configuration file, `etc/mqttv5-simulator.yaml`, defines the plugin as follows.
+
+```bash
+cd_app simulator
+cat etc/mqttv5-simulator.yaml
+```
+
+Output:
+
+```yaml
+...
+plugins:
+  # Data feed plugin APP that generates simulated data
+  - name: datafeed
+    description: A data feed that publishes simulated numerical data for MQTT and Hazelcast with QuestDB enabled
+    enabled: true
+    context: APP
+    className: padogrid.simulator.DataFeedSimulatorPlugin
+...
+clusters:
+  - name: edge
+    enabled: true
+    autoConnect: true
+    fos: 0
+    publisherType: ROUND_ROBIN
+
+    # QuestDB connector. Enable or disable in the 'plugins' element.
+    pluginName: questdb
+...
+```
+
+Take a look at [`DataFeedSimulatorPlugin`](apps/simulator/src/main/java/padogrid/simulator/DataFeedSimulatorPlugin.java). It implements `IMqttPlugin` which extends `Runnable`. The virtual cluster service bootstraps the plugin in a daemon thread during the application startup time. Typically, plugins are highly configurable and resuable such that you can create embedded virtual clusters without needing to code.
+
+You can use the `HaMqttClient` API to embed plugins in your application or simply use the `vc_start` command as follows.
+
+1. Display the simulator plugin usage.
+
+```bash
+cd_app simulator
+vc_start -config mqtt5-simulator.yaml -?
+```
+
+2. Start the simulator plugin.
+
+```bash
+vc_start -config etc/mqttv5-simulator.yaml -simulator-config etc/simulator-stocks.yaml
+```
+
+✏️  Note that the [`DataFeedSimulator`](apps/simulator/src/main/java/padogrid/simulator/DataFeedSimulator.java) class launched by the `simulator` command also invokes `padogrid.simulator.DataFeedSimulatorPlugin`.
 
 ## Teardown
 
@@ -602,6 +676,7 @@ stop_cluster
 1. *Clustering MQTT*, PadoGrid Manual, <https://github.com/padogrid/padogrid/wiki/Clustering-MQTT>
 1. *Eclipse Mosquitto*, <https://mosquitto.org/>
 1. *Paho*, Eclipse Foundation, <https://www.eclipse.org/paho/>
+1. *Fast SQL for time-series*, QuestDB, <https://questdb.io/>
 
 ---
 

@@ -22,9 +22,28 @@ enabled: true
 # Default: cluster-default
 defaultCluster: edge
 
+plugins:
+  # Data feed plugin APP that generates simulated data
+  - name: datafeed
+    description: A data feed that publishes simulated numerical data for MQTT and Hazelcast with QuestDB enabled
+    enabled: true
+    context: APP
+    className: padogrid.simulator.DataFeedSimulatorPlugin
+    
+  # QuestDB connector. Writes simulated data to QuestDB via
+  # ILP(InflucDB Line Protocol) just before published.
+  - name: questdb
+    description: Writes JSON messages to QuestDB
+    enabled: false
+    context: CLUSTER
+    className: padogrid.mqtt.connectors.QuestDbJsonConnector
+    properties:
+      - key: endpoint
+        value: localhost:9009
+
 # Tag name that describes this JVM.
 # Default: cluster-tag
-tag: edge
+tag: edge-questdb
 
 # Cluster probe delay interval in milliseconds. The cluster service periodically
 # probes the endpoints defined in each cluster.
@@ -36,16 +55,10 @@ clusters:
     enabled: true
     autoConnect: true
     fos: 0
-    
-    # Publisher Type. Valid values are STICKY, RANDOM, ROUND_ROBIN, ALL.
-    #   STICKY - Use one server for all publications.
-    #   RANDOM - Randomly select one server from the live list for each publication.
-    #   ROUND_ROBIN - Select the next server from the live list for each publication.
-    #   ALL - Publish each message to all servers in the live list.
-    # If STICKY and primaryServerURI is defined, the cluster client always uses
-    # that server for all operations.
-    # Default: STICKY
     publisherType: ROUND_ROBIN
+    
+    # QuestDB connector. Enable or disable in the 'plugins' element.
+    pluginName: questdb
 
     connections:
       - connection:
