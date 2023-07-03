@@ -19,8 +19,24 @@ import padogrid.mqtt.client.cluster.internal.ConfigUtil;
 import padogrid.simulator.Equation;
 
 public class SimulatorConfig {
+	public final static String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+	
+	private String timeFormat = TIME_FORMAT;
 	private Equation[] equations;
 	private Publisher[] publishers;
+
+	public String getTimeFormat() {
+		if (timeFormat == null || timeFormat.trim().length() == 0) {
+			timeFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+		} else {
+			ConfigUtil.parseStringValue(timeFormat);
+		}
+		return timeFormat;
+	}
+
+	public void setTimeFormat(String timeFormat) {
+		this.timeFormat = timeFormat;
+	}
 
 	public Equation[] getEquations() {
 		return equations;
@@ -41,12 +57,15 @@ public class SimulatorConfig {
 	public static class Publisher {
 		private Product product = Product.MQTT;
 		private String name;
-		private String equationName;
-		private DataStructure dataStructure;
 		private int initialDelay = 0;
+		private String startTime;
+		// timeInterval in msec
 		private int timeInterval = 500;
 		private long count = Long.MAX_VALUE;
 		private boolean enabled = true;
+		private DataStructure dataStructure;
+		private PublisherEquation equations;
+		private Reset reset;
 
 		public Product getProduct() {
 			return product;
@@ -64,24 +83,20 @@ public class SimulatorConfig {
 			this.name = name;
 		}
 
-		public String getEquationName() {
-			return ConfigUtil.parseStringValue(equationName);
-		}
-
-		public void setEquationName(String equationName) {
-			this.equationName = equationName;
-		}
-
-		public void setEquation(String equationName) {
-			this.equationName = equationName;
-		}
-
 		public int getInitialDelay() {
 			return initialDelay;
 		}
 
 		public void setInitialDelay(int initialDelay) {
 			this.initialDelay = initialDelay;
+		}
+
+		public String getStartTime() {
+			return ConfigUtil.parseStringValue(startTime);
+		}
+
+		public void setStartTime(String startTime) {
+			this.startTime = startTime;
 		}
 
 		public int getTimeInterval() {
@@ -100,6 +115,14 @@ public class SimulatorConfig {
 			this.count = count;
 		}
 
+		public boolean isEnabled() {
+			return enabled;
+		}
+
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
+		}
+
 		public DataStructure getDataStructure() {
 			return dataStructure;
 		}
@@ -108,12 +131,20 @@ public class SimulatorConfig {
 			this.dataStructure = dataStructure;
 		}
 
-		public boolean isEnabled() {
-			return enabled;
+		public PublisherEquation getEquations() {
+			return equations;
 		}
 
-		public void setEnabled(boolean enabled) {
-			this.enabled = enabled;
+		public void setEquations(PublisherEquation equations) {
+			this.equations = equations;
+		}
+
+		public Reset getReset() {
+			return reset;
+		}
+
+		public void setReset(Reset reset) {
+			this.reset = reset;
 		}
 	}
 
@@ -152,7 +183,7 @@ public class SimulatorConfig {
 			if (keyValue == null || keyValue.length() == 0) {
 				keyValue = "key";
 			}
-			return keyValue;
+			return ConfigUtil.parseStringValue(keyValue);
 		}
 
 		public void setKeyValue(String keyValue) {
@@ -168,6 +199,48 @@ public class SimulatorConfig {
 		}
 	}
 
+	public static class PublisherEquation {
+		private String[] equationNames;
+		private long equationDelay = 500;
+
+		public String[] getEquationNames() {
+			return equationNames;
+		}
+
+		public void setEquationNames(String[] equationNames) {
+			this.equationNames = equationNames;
+		}
+
+		public long getEquationDelay() {
+			return equationDelay;
+		}
+
+		public void setEquationDelay(long equationDelay) {
+			this.equationDelay = equationDelay;
+		}
+	}
+
+	public static class Reset {
+		private String equationName;
+		private long baseTime;
+
+		public String getEquationName() {
+			return ConfigUtil.parseStringValue(equationName);
+		}
+
+		public void setEquationName(String equationName) {
+			this.equationName = equationName;
+		}
+
+		public long getBaseTime() {
+			return baseTime;
+		}
+
+		public void setBaseTime(long baseTime) {
+			this.baseTime = baseTime;
+		}
+	}
+
 	public enum Product {
 		MQTT, mqtt, HAZELCAST, hazelcast
 	}
@@ -177,6 +250,6 @@ public class SimulatorConfig {
 	}
 
 	public static enum KeyType {
-		FIXED, 	SEQUENCE, TIME, UUID, sequence, time, uuid
+		FIXED, SEQUENCE, TIME, UUID, sequence, time, uuid
 	}
 }

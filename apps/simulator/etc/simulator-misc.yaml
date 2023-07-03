@@ -18,7 +18,6 @@ equations:
   - name: igloo
     formula: y=sqrt(1-x*x)
     description: igloo
-    timeInterval: 500
     baseSpread: 0.05
     jitter: 0.1
     multiplier: 10
@@ -27,9 +26,6 @@ equations:
   - name: temperature
     formula: y=sin(x)
     description: temperature 24 - 65 F from 00:00am to 12:00pm. 1000 points per cycle.
-    startTime: "2022-11-10T00:00:00.000-0400"
-    # 10 min interval
-    timeInterval: 86_400
     # -pi/2
     minBase: -1.57
     # 3pi/2
@@ -40,13 +36,10 @@ equations:
     constant: 2.2
     calculationFunction: java.lang.Math.sin
     type: REPEAT
-    resetBaseTime: 86_400_000
 
   - name: carcost
     formula: y=e^(-x)
     description: Car resell value decline. Purchase price $25,000
-    # day interval
-    timeInterval: 86_400_000
     minBase: 0
     maxBase: 1
     baseSpread: 0.0010
@@ -59,7 +52,6 @@ equations:
   - name: heartbeat
     formula: y=sin(x)^63*sin(x+1.5)*8
     description: heartbeat
-    timeInterval: 500
     minBase: 0
     maxBase: 2
     baseSpread: 0.05
@@ -77,42 +69,55 @@ publishers:
   - product: mqtt
     enabled: true
     name: igloo-publisher
-    equationName: igloo
+    timeInterval: 500
+    equations:
+      equationNames: [igloo]
     dataStructure:
       type: topic
       name: test/igloo
-    timeInterval: 500
 
   # temperature
   - product: mqtt
     enabled: true
     name: temperature-publisher
-    equationName: temperature
+    startTime: "2022-11-10T00:00:00.000-0500"
+    # 10 min between ticks
+    timeInterval: 86_400
+    equations:
+      equationNames: [temperature]
+      equationDelay: 200
     dataStructure:
       type: topic
       name: test/temperature
-    timeInterval: 200
+    reset:
+      equationName: temperature
+      baseTime: 86_400_000
 
   # carcost
   - product: mqtt
     enabled: true
     name: carcost-publisher
-    equationName: carcost
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      # 1 day interval
+      equationDelay: 100
     dataStructure:
       type: topic
       name: test/carcost
-    timeInterval: 100
 
   # heartbeat
   - product: mqtt
     enabled: true
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: topic
       name: test/heartbeat
-    timeInterval: 40
-
+    
   # ---------
   # Hazelcast
   # ---------
@@ -121,182 +126,246 @@ publishers:
   - product: hazelcast
     enabled: true
     name: igloo-publisher
-    equationName: igloo
+    timeInterval: 500
+    equations:
+      equationNames: [igloo]
     dataStructure:
       type: topic
       name: igloo
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: igloo-publisher
-    equationName: igloo
+    timeInterval: 500
+    equations:
+      equationNames: [igloo]
     dataStructure:
       type: rtopic
       name: igloo
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: igloo-publisher
-    equationName: igloo
+    timeInterval: 500
+    equations:
+      equationNames: [igloo]
     dataStructure:
       type: map
       name: igloo
       keyType: FIXED
       keyValue: key
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: igloo-publisher
-    equationName: igloo
+    timeInterval: 500
+    equations:
+      equationNames: [igloo]
     dataStructure:
       type: rmap
       name: igloo
       keyType: FIXED
       keyValue: key
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: igloo-publisher
-    equationName: igloo
+    timeInterval: 500
+    equations:
+      equationNames: [igloo]
     dataStructure:
       type: queue
       name: igloo
-    timeInterval: 500
 
   # temperature
   - product: hazelcast
     enabled: true
     name: temperature-publisher
-    equationName: temperature
+    startTime: "2022-11-10T00:00:00.000-0500"
+    # 10 min interval
+    timeInterval: 86_400
+    equations:
+      equationNames: [temperature]
+      equationDelay: 200
     dataStructure:
       type: topic
       name: temperature
-    timeInterval: 500
+    reset:
+      equationName: temperature
+      baseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
-    equationName: temperature
+    startTime: "2022-11-10T00:00:00.000-0500"
+    timeInterval: 200
+    equations:
+      equationNames: [temperature]
+      # 10 min interval
+      equationDelay: 86_400
     dataStructure:
       type: rtopic
       name: temperature
-    timeInterval: 500
+    reset:
+      equationName: temperature
+      baseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
-    equationName: temperature
+    timeInterval: 200
+    equations:
+      equationNames: [temperature]
+      # 10 min interval
+      equationDelay: 86_400
     dataStructure:
       type: map
       name: temperature
       keyType: FIXED
       keyValue: key
-    timeInterval: 500
+    reset:
+      equationName: temperature
+      baseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
-    equationName: temperature
+    startTime: "2022-11-10T00:00:00.000-0500"
+    # 10 min interval
+    timeInterval: 86_400
+    equations:
+      equationNames: [temperature]
+      equationDelay: 200
     dataStructure:
       type: rmap
       name: temperature
       keyType: FIXED
       keyValue: key
-    timeInterval: 500
+    reset:
+      equationName: temperature
+      baseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
-    equationName: temperature
+    startTime: "2022-11-10T00:00:00.000-0500"
+    # 10 min interval
+    timeInterval: 86_400
+    equations:
+      equationNames: [temperature]
+      equationDelay: 200
     dataStructure:
       type: queue
       name: temperature
-    timeInterval: 500
+    reset:
+      equationName: temperature
+      baseTime: 86_400_000
 
   # carcost
   - product: hazelcast
     enabled: true
     name: carcost-publisher
-    equationName: carcost
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      equationDelay: 100
     dataStructure:
       type: topic
       name: carcost
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: carcost-publisher
-    equationName: carcost
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      equationDelay: 100
     dataStructure:
       type: rtopic
       name: carcost
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: carcost-publisher
-    equationName: carcost
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      equationDelay: 100
     dataStructure:
       type: map
       name: carcost
       keyType: FIXED
       keyValue: key
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: carcost-publisher
-    equationName: carcost
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      equationDelay: 100
     dataStructure:
       type: rmap
       name: carcost
       keyType: FIXED
       keyValue: key
-    timeInterval: 500
   - product: hazelcast
     enabled: true
     name: carcost-publisher
-    equationName: carcost
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      equationDelay: 100
     dataStructure:
       type: queue
       name: carcost
-    timeInterval: 500
 
   # heartbeat
   - product: hazelcast
     enabled: true
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: topic
       name: heartbeat
-    timeInterval: 40
   - product: hazelcast
     enabled: true
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: rtopic
       name: heartbeat
-    timeInterval: 40
   - product: hazelcast
     enabled: true
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: map
       name: heartbeat
       keyType: FIXED
       keyValue: key
-    timeInterval: 40
   - product: hazelcast
     enabled: true
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: rmap
       name: heartbeat
       keyType: FIXED
       keyValue: key
-    timeInterval: 40
   - product: hazelcast
     enabled: true
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: queue
       name: heartbeat
-    timeInterval: 40

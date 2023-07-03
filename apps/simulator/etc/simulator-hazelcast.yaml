@@ -50,26 +50,14 @@ publishers:
   # Hazelcast
   # ---------
 
-  # stock1
+  # stocks
   - product: hazelcast
     enabled: true
-    name: stock1-publisher
-    equationName: stock1
+    name: stock-publisher
+    timeInterval: 500
     dataStructure:
       type: map
-      name: mkp_1
+      name: stocks
       keyType: FIXED
       keyValue: key
-    timeInterval: 500
-
-  # stock2
-  - product: hazelcast
-    enabled: true
-    name: stock2-publisher
-    equationName: stock2
-    dataStructure:
-      type: map
-      name: mkp_2
-      keyType: FIXED
-      keyValue: key
-    timeInterval: 500
+    equationNames: [stock1, stock2]

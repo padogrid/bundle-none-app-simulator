@@ -17,5 +17,8 @@ package padogrid.simulator;
 
 public interface Constants {
 	public final String PROPERTY_executableName = "executable.name";
-
+	
+	public final static int MIN_WINDOW_SIZE = 100;
+	public final static int MAX_WINDOW_SIZE = 10_000_000;
+	public final static int DEFAULT_WINDOW_SIZE = 1000;
 }

@@ -18,8 +18,6 @@ equations:
   - name: sine
     formula: y=sin(x)
     description: Sine wave
-    startTime: -1
-    timeInterval: 500
     minBase: -1
     maxBase: 1
     baseSpread: 0.1
@@ -28,8 +26,6 @@ equations:
   - name: dampedSineWave
     formula: y=2e^(-2x)sin(2*pi*x/.5)
     description: Damped sine wave
-    startTime: -1
-    timeInterval: 500
     minBase: 0
     maxBase: 2
     baseSpread: 0.1
@@ -38,7 +34,6 @@ equations:
   - name: heartbeat
     formula: y=sin(x)^63*sin(x+1.5)*8
     description: heartbeat
-    timeInterval: 500
     minBase: 0
     maxBase: 2
     baseSpread: 0.05
@@ -48,14 +43,12 @@ equations:
   - name: tan
     formula: y=tan(x)
     description: tan
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: java.lang.Math.tan
   - name: tanh
     formula: y=tanh(x)
     description: tanh
-    timeInterval: 500
     minBase: 0
     maxBase: 5
     baseSpread: 0.1
@@ -64,21 +57,18 @@ equations:
   - name: exp
     formula: y=e^x
     description: exp
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: java.lang.Math.exp
   - name: circle
     formula: y=sqrt(1-x*x)
     description: circle
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.circle
   - name: decay
     formula: y=e^(-x/5)
     description: decay
-    timeInterval: 500
     minBase: -20
     maxBase: 10
     baseSpread: 0.1
@@ -87,7 +77,6 @@ equations:
   - name: expDecay
     formula: y=e^(-x)
     description: exponential decay
-    timeInterval: 500
     minBase: -2
     maxBase: 4
     baseSpread: 0.1
@@ -96,70 +85,60 @@ equations:
   - name: linear
     formula: y=x+1
     description: linear
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.linear
   - name: quadratic
     formula: y=x^2+x+1
     description: quadratic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.quadratic
   - name: cubic
     formula: y=x^3+x^2+x+1
     description: cubic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.cubic
   - name: quartic
     formula: y=x^4+x^3+x^2+x+1
     description: quartic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.quartic
   - name: quintic
     formula:  y=x^5+x^4+x^3+x^2+x+1
     description: quintic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.quintic
   - name: sextic
     formula:  y=x^6+x^5+x^4+x^3+x^2+x+1
     description: sextic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.sextic
   - name: septic
     formula:  y=x^7+x^6+x^5+x^4+x^3+x^2+x+1
     description: sextic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.septic
   - name: octic
     formula:  y=x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
     description: octic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.octic
   - name: nontic
     formula:  y=x^9+x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
     description: nontic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.nontic
   - name: decic
     formula:  y=x^9+x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
     description: decic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.decic
@@ -168,151 +147,165 @@ publishers:
   # MQTT
   - product: mqtt
     name: sine-publisher
-    equationName: sine
+    timeInterval: 500
+    equations:
+      equationNames: [sine]
     dataStructure:
       type: topic
       name: test/sine
-    timeInterval: 500
   - product: mqtt
     name: dampedSineWave-publisher
-    equationName: dampedSineWave
+    timeInterval: 500
+    equations:
+      equationNames: [dampedSineWave]
     dataStructure:
       type: topic
       name: test/dampedSineWave
-    timeInterval: 500
   - product: mqtt
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: topic
       name: test/heartbeat
-    timeInterval: 40
   - product: mqtt
     name: tan-publisher
-    equationName: tan
+    timeInterval: 500
+    equations:
+      equationNames: [tan]
     dataStructure:
       type: topic
       name: test/tan
-    timeInterval: 500
   - product: mqtt
     name: tanh-publisher
-    equationName: tanh
+    timeInterval: 500
+    equations:
+      equationNames: [tanh]
     dataStructure:
       type: topic
       name: test/tanh
-    timeInterval: 500
   - product: mqtt
     name: exp-publisher
-    equationName: exp
+    timeInterval: 500
+    equations:
+      equationNames: [exp]
     dataStructure:
       type: topic
       name: test/exp
-    timeInterval: 500
   - product: mqtt
     name: circle-publisher
-    equationName: circle
+    timeInterval: 500
+    equations:
+      equationNames: [circle]
     dataStructure:
       type: topic
       name: test/circle
-    timeInterval: 500
   - product: mqtt
     name: decay-publisher
-    equationName: decay
+    timeInterval: 500
+    equations:
+      equationNames: [decay]
     dataStructure:
       type: topic
       name: test/decay
-    timeInterval: 500
   - product: mqtt
     name: expDecay-publisher
-    equationName: expDecay
+    timeInterval: 500
+    equations:
+      equationNames: [expDecay]
     dataStructure:
       type: topic
       name: test/expDecay
-    timeInterval: 500
   - product: mqtt
     name: linear-publisher
-    equationName: linear
+    timeInterval: 500
+    equations:
+      equationNames: [linear]
     dataStructure:
       type: topic
       name: test/linear
-    timeInterval: 500
   - product: mqtt
     name: quadratic-publisher
-    equationName: quadratic
+    timeInterval: 500
+    equations:
+      equationNames: [quadratic]
     dataStructure:
       type: topic
       name: test/quadratic
-    timeInterval: 500
   - product: mqtt
     name: cubic-publisher
-    equationName: cubic
+    timeInterval: 500
+    equations:
+      equationNames: [cubic]
     dataStructure:
       type: topic
       name: test/cubic
-    timeInterval: 500
-  - product: mqtt
-    name: quadratic-publisher
-    equationName: quadratic
-    dataStructure:
-      type: topic
-      name: test/quadratic
-    timeInterval: 500
   - product: mqtt
     name: quartic-publisher
-    equationName: quartic
+    timeInterval: 500
+    equations:
+      equationNames: [quartic]
     dataStructure:
       type: topic
       name: test/quartic
-    timeInterval: 500
   - product: mqtt
     name: quintic-publisher
-    equationName: quintic
+    timeInterval: 500
+    equations:
+      equationNames: [quintic]
     dataStructure:
       type: topic
       name: test/quintic
-    timeInterval: 500  
   - product: mqtt
     name: circle-publisher
-    equationName: circle
+    timeInterval: 500
+    equations:
+      equationNames: [circle]
     dataStructure:
       type: topic
       name: test/circle
-    timeInterval: 500
   - product: mqtt
     name: sextic-publisher
-    equationName: sextic
+    timeInterval: 500
+    equations:
+      equationNames: [sextic]
     dataStructure:
       type: topic
       name: test/sextic
-    timeInterval: 500
   - product: mqtt
     name: septic-publisher
-    equationName: septic
+    timeInterval: 500
+    equations:
+      equationNames: [septic]
     dataStructure:
       type: topic
       name: test/septic
-    timeInterval: 500
   - product: mqtt
     name: octic-publisher
-    equationName: octic
+    timeInterval: 500
+    equations:
+      equationNames: [octic]
     dataStructure:
       type: topic
       name: test/octic
-    timeInterval: 500
   - product: mqtt
     name: nontic-publisher
-    equationName: nontic
+    timeInterval: 500
+    equations:
+      equationNames: [nontic]
     dataStructure:
       type: topic
       name: test/nontic
-    timeInterval: 500
   - product: mqtt
     name: decic-publisher
-    equationName: decic
+    timeInterval: 500
+    equations:
+      equationNames: [decic]
     dataStructure:
       type: topic
       name: test/decic
-    timeInterval: 500
 
   # ---------
   # Hazelcast
@@ -320,141 +313,154 @@ publishers:
 
   - product: hazelcast
     name: sine-publisher
-    equationName: sine
+    timeInterval: 500
+    equations:
+      equationNames: [sine]
     dataStructure:
       type: topic
       name: test/sine
-    timeInterval: 500
   - product: hazelcast
     name: dampedSineWave-publisher
-    equationName: dampedSineWave
+    timeInterval: 500
+    equations:
+      equationNames: [dampedSineWave]
     dataStructure:
       type: topic
       name: test/dampedSineWave
-    timeInterval: 500
   - product: hazelcast
     name: heartbeat-publisher
-    equationName: heartbeat
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
     dataStructure:
       type: topic
       name: test/heartbeat
-    timeInterval: 40
   - product: hazelcast
     name: tan-publisher
-    equationName: tan
+    timeInterval: 500
+    equations:
+      equationNames: [tan]
     dataStructure:
       type: topic
       name: test/tan
-    timeInterval: 500
   - product: hazelcast
     name: tanh-publisher
-    equationName: tanh
+    timeInterval: 500
+    equations:
+      equationNames: [tanh]
     dataStructure:
       type: topic
       name: test/tanh
-    timeInterval: 500
   - product: hazelcast
     name: exp-publisher
-    equationName: exp
+    timeInterval: 500
+    equations:
+      equationNames: [exp]
     dataStructure:
       type: topic
       name: test/exp
-    timeInterval: 500
   - product: hazelcast
     name: circle-publisher
-    equationName: circle
+    timeInterval: 500
+    equations:
+      equationNames: [circle]
     dataStructure:
       type: topic
       name: test/circle
-    timeInterval: 500
   - product: hazelcast
     name: decay-publisher
-    equationName: decay
+    timeInterval: 500
+    equations:
+      equationNames: [decay]
     dataStructure:
       type: topic
       name: test/decay
-    timeInterval: 500
   - product: hazelcast
     name: linear-publisher
-    equationName: linear
+    timeInterval: 500
+    equations:
+      equationNames: [linear]
     dataStructure:
       type: topic
       name: test/linear
-    timeInterval: 500
   - product: hazelcast
     name: quadratic-publisher
-    equationName: quadratic
+    timeInterval: 500
+    equations:
+      equationNames: [quadratic]
     dataStructure:
       type: topic
       name: test/quadratic
-    timeInterval: 500
   - product: hazelcast
     name: cubic-publisher
-    equationName: cubic
+    timeInterval: 500
+    equations:
+      equationNames: [cubic]
     dataStructure:
       type: topic
       name: test/cubic
-    timeInterval: 500
-  - product: hazelcast
-    name: quadratic-publisher
-    equationName: quadratic
-    dataStructure:
-      type: topic
-      name: test/quadratic
-    timeInterval: 500
   - product: hazelcast
     name: quartic-publisher
-    equationName: quartic
+    timeInterval: 500
+    equations:
+      equationNames: [quartic]
     dataStructure:
       type: topic
       name: test/quartic
-    timeInterval: 500
   - product: hazelcast
     name: quintic-publisher
-    equationName: quintic
+    timeInterval: 500
+    equations:
+      equationNames: [quintic]
     dataStructure:
       type: topic
       name: test/quintic
-    timeInterval: 500  
   - product: hazelcast
     name: circle-publisher
-    equationName: circle
+    timeInterval: 500
+    equations:
+      equationNames: [circle]
     dataStructure:
       type: topic
       name: test/circle
-    timeInterval: 500
   - product: hazelcast
     name: sextic-publisher
-    equationName: sextic
+    timeInterval: 500
+    equations:
+      equationNames: [sextic]
     dataStructure:
       type: topic
       name: test/sextic
-    timeInterval: 500
   - product: hazelcast
     name: septic-publisher
-    equationName: septic
+    timeInterval: 500
+    equations:
+      equationNames: [septic]
     dataStructure:
       type: topic
       name: test/septic
-    timeInterval: 500
   - product: hazelcast
     name: octic-publisher
-    equationName: octic
+    timeInterval: 500
+    equations:
+      equationNames: [octic]
     dataStructure:
       type: topic
       name: test/octic
-    timeInterval: 500
   - product: hazelcast
     name: nontic-publisher
-    equationName: nontic
+    timeInterval: 500
+    equations:
+      equationNames: [nontic]
     dataStructure:
       type: topic
       name: test/nontic
-    timeInterval: 500
   - product: hazelcast
     name: decic-publisher
-    equationName: decic
+    timeInterval: 500
+    equations:
+      equationNames: [decic]
     dataStructure:
       type: topic
       name: test/decic
-    timeInterval: 500

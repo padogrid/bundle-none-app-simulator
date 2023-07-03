@@ -18,10 +18,8 @@ package padogrid.simulator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 
 import org.eclipse.paho.mqttv5.client.IMqttToken;
 import org.eclipse.paho.mqttv5.client.MqttClient;
@@ -31,20 +29,13 @@ import org.eclipse.paho.mqttv5.common.MqttMessage;
 import org.eclipse.paho.mqttv5.common.packet.MqttProperties;
 import org.json.JSONObject;
 
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.stage.Stage;
 import padogrid.mqtt.client.cluster.HaClusters;
 import padogrid.mqtt.client.cluster.HaMqttClient;
 import padogrid.mqtt.client.cluster.HaMqttConnectionOptions;
 import padogrid.mqtt.client.cluster.IClusterConfig;
 import padogrid.mqtt.client.cluster.IHaMqttCallback;
 import padogrid.mqtt.client.cluster.config.ClusterConfig;
+import padogrid.simulator.config.SimulatorConfig;
 
 /**
  * Plots MQTT topic updates.
@@ -52,74 +43,14 @@ import padogrid.mqtt.client.cluster.config.ClusterConfig;
  * @author dpark
  *
  */
-public class MqttChart extends Application implements Constants {
-
-	static int WINDOW_SIZE = 200;
-	static XYChart.Series<String, Number> series;
-
+public class MqttChart extends AbstractChart {
 	static String topicFilter = null;
 	static HaMqttClient client = null;
-
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-		String[] endpoints = client.getServerURIs();
-		Arrays.sort(endpoints);
-		String endpointsStr = "";
-		for (int i = 0; i < endpoints.length; i++) {
-			if (i > 0) {
-				endpointsStr += ",";
-			}
-			endpointsStr += endpoints[i];
-		}
-		String stageTitle = "MQTT: " + endpointsStr;
-		String chartTitle = "Topic: " + topicFilter;
-		primaryStage.setTitle(stageTitle);
-
-		// defining the axes
-		final CategoryAxis xAxis = new CategoryAxis(); // we are gonna plot against time
-		final NumberAxis yAxis = new NumberAxis();
-		xAxis.setLabel("Time");
-		xAxis.setAnimated(false); // axis animations are removed
-		yAxis.setLabel("Value");
-		yAxis.setAnimated(false); // axis animations are removed
-
-		// creating the line chart with two axis created above
-		final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
-		lineChart.setTitle(chartTitle);
-		lineChart.setAnimated(false); // disable animations
-
-		// defining a series to display data
-		series = new XYChart.Series<>();
-		series.setName("Data Series");
-
-		// add series to chart
-		lineChart.getData().add(series);
-
-		// setup scene
-		Scene scene = new Scene(lineChart, 1000, 600);
-		primaryStage.setScene(scene);
-
-		// show the stage
-		primaryStage.show();
-	}
 
 	@Override
 	public void stop() throws Exception {
 		super.stop();
 		HaClusters.stop();
-	}
-
-	private static void writeLine() {
-		System.out.println();
-	}
-
-	private static void writeLine(String line) {
-		System.out.println(line);
-	}
-
-	@SuppressWarnings("unused")
-	private static void write(String str) {
-		System.out.print(str);
 	}
 
 	private static void usage() {
@@ -130,7 +61,7 @@ public class MqttChart extends Application implements Constants {
 		writeLine();
 		writeLine("SNOPSIS");
 		writeLine("   " + executable + " [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]]");
-		writeLine("              [-fos fos] [-qos qos] -t topic_filter [-?]");
+		writeLine("              [-fos fos] [-qos qos] [-features feature_list] [-time-format time_format] [-window-size window_size] -t topic_filter [-?]");
 		writeLine();
 		writeLine("DESCRIPTION");
 		writeLine("   Charts the MQTT data published by the simulator.");
@@ -170,6 +101,19 @@ public class MqttChart extends Application implements Constants {
 		writeLine("   -qos qos");
 		writeLine("             Optional QoS value. Valid values are 0, 1, 2. Default: 0.");
 		writeLine();
+		writeLine("   -features feature_list");
+		writeLine("             Optional comma separated list of features (attributes) to plot. If unspecified,");
+		writeLine("             it plots all numerical features.");
+		writeLine();
+		writeLine("   -time-format time_format");
+		writeLine("             Optional time format. The time format must match the 'time' attibute in the payload.");
+		writeLine("             Default: \"" + SimulatorConfig.TIME_FORMAT + "\"");
+		writeLine();
+		writeLine("   -window-size");
+		writeLine("             Optional chart window size. The maximum number of data points to display before start");
+		writeLine("             trending the chart.");
+		writeLine("             Default: " + WINDOW_SIZE);
+		writeLine();
 		writeLine("   -t topic_filter");
 		writeLine("             Topic filter.");
 		writeLine();
@@ -179,6 +123,7 @@ public class MqttChart extends Application implements Constants {
 		writeLine("   etc/simulator-edge.yaml");
 		writeLine("   etc/simulator-misc.yaml");
 		writeLine("   etc/simulator-padogrid.yaml");
+		writeLine("   etc/simulator-padogrid-all.yaml");
 		writeLine("   etc/simulator-stocks.yaml");
 		writeLine("   etc/template-simulator-padogrid.yaml");
 		writeLine();
@@ -190,6 +135,7 @@ public class MqttChart extends Application implements Constants {
 		String configFilePath = null;
 		int qos = 0;
 		int fos = 0;
+		int windowSize = WINDOW_SIZE;
 		topicFilter = null;
 
 		String arg;
@@ -236,6 +182,27 @@ public class MqttChart extends Application implements Constants {
 						System.exit(1);
 					}
 				}
+			} else if (arg.equals("-features")) {
+				if (i < args.length - 1) {
+					String val = args[++i].trim();
+					val = val.replaceAll("\\s", "");
+					features = val.split(",");
+					Arrays.sort(features);
+				}
+			} else if (arg.equals("-time-format")) {
+				if (i < args.length - 1) {
+					timeFormat = args[++i].trim();
+				}
+			} else if (arg.equals("-window-size")) {
+				if (i < args.length - 1) {
+					String val = args[++i].trim();
+					try {
+						windowSize = Integer.parseInt(val);
+					} catch (Exception ex) {
+						System.err.printf("ERROR: Invalid window-size [%s]%n. Command aborted.", val);
+						System.exit(1);
+					}
+				}
 			}
 		}
 
@@ -256,6 +223,18 @@ public class MqttChart extends Application implements Constants {
 			System.err.printf("ERROR: Topic wildcards not allowed [%s].%n", topicFilter);
 			System.exit(4);
 		}
+		
+		if (windowSize < MIN_WINDOW_SIZE) {
+			System.out.printf("Window size too small [%d]. Setting to the minimum value of %d...%n", windowSize, MIN_WINDOW_SIZE);
+		} else if (windowSize > 10000) {
+			System.out.printf("Window size too large [%d]. Setting to the maximum value of %d...%n", windowSize, MAX_WINDOW_SIZE);
+			WINDOW_SIZE = MAX_WINDOW_SIZE;
+		} else {
+			WINDOW_SIZE = windowSize;
+		}
+		
+		// Set time format
+		simpleDateFormat = new SimpleDateFormat(timeFormat);
 
 		// Collect system properties - passed in by the invoking script.
 		if (configFilePath == null && clusterName == null) {
@@ -351,7 +330,6 @@ public class MqttChart extends Application implements Constants {
 
 		// Register callback to display received messages
 		client.addCallbackCluster(new IHaMqttCallback() {
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 			@Override
 			public void mqttErrorOccurred(MqttClient client, MqttException exception) {
@@ -363,18 +341,7 @@ public class MqttChart extends Application implements Constants {
 				try {
 					JSONObject json = new JSONObject(new String(message.getPayload(), StandardCharsets.UTF_8));
 					String time = json.getString("time");
-					double value = json.getDouble("value");
-					Platform.runLater(() -> {
-						try {
-							Date date = simpleDateFormat.parse(time);
-							series.getData().add(new XYChart.Data<>(simpleDateFormat.format(date), value));
-							if (series.getData().size() > WINDOW_SIZE)
-								series.getData().remove(0);
-						} catch (ParseException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					});
+					updateChart(json);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -411,6 +378,18 @@ public class MqttChart extends Application implements Constants {
 				System.exit(-1);
 			}
 			client.subscribe(topicFilter, qos);
+			
+			String[] endpoints2 = client.getServerURIs();
+			Arrays.sort(endpoints2);
+			String endpointsStr = "";
+			for (int i = 0; i < endpoints2.length; i++) {
+				if (i > 0) {
+					endpointsStr += ",";
+				}
+				endpointsStr += endpoints2[i];
+			}
+			stageTitle = "MQTT: " + endpointsStr;
+			chartTitle = "Topic: " + topicFilter;
 
 			launch(args);
 

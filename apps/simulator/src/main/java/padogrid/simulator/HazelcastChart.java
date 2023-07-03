@@ -15,9 +15,8 @@
  */
 package padogrid.simulator;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Arrays;
 
 import org.json.JSONObject;
 
@@ -38,13 +37,6 @@ import com.hazelcast.topic.ITopic;
 import com.hazelcast.topic.Message;
 import com.hazelcast.topic.MessageListener;
 
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.stage.Stage;
 import padogrid.simulator.config.SimulatorConfig;
 
@@ -54,73 +46,38 @@ import padogrid.simulator.config.SimulatorConfig;
  * @author dpark
  *
  */
-public class HazelcastChart extends Application implements Constants {
+public class HazelcastChart extends AbstractChart {
 
-	static int WINDOW_SIZE = 200;
-	static XYChart.Series<String, Number> series;
-
-	static String stageTitle;
-	static String chartTitle;
-
-	static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-	
 	static IQueue<HazelcastJsonValue> hzQueue = null;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		primaryStage.setTitle(stageTitle);
+		super.start(primaryStage);
 
-		// defining the axes
-		final CategoryAxis xAxis = new CategoryAxis(); // we are gonna plot against time
-		final NumberAxis yAxis = new NumberAxis();
-		xAxis.setLabel("Time");
-		xAxis.setAnimated(false); // axis animations are removed
-		yAxis.setLabel("Value");
-		yAxis.setAnimated(false); // axis animations are removed
-
-		// creating the line chart with two axis created above
-		final LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
-		lineChart.setTitle(chartTitle);
-		lineChart.setAnimated(false); // disable animations
-
-		// defining a series to display data
-		series = new XYChart.Series<>();
-		series.setName("Data Series");
-
-		// add series to chart
-		lineChart.getData().add(series);
-
-		// setup scene
-		Scene scene = new Scene(lineChart, 1000, 600);
-		primaryStage.setScene(scene);
-
-		// show the stage
-		primaryStage.show();
-		
 		// If queue, let's drain it first.
 		if (hzQueue != null) {
 			HazelcastJsonValue value;
 			do {
 				value = hzQueue.poll();
 				if (value != null) {
-					updateChart(value);
+					updateChart(new JSONObject(value.getValue()));
 				}
 			} while (value != null);
-			
+
 			// Add listener
 			hzQueue.addItemListener(new ItemListener<HazelcastJsonValue>() {
-	
+
 				@Override
 				public void itemAdded(ItemEvent<HazelcastJsonValue> item) {
 					HazelcastJsonValue value;
 					do {
 						value = hzQueue.poll();
 						if (value != null) {
-							updateChart(value);
+							updateChart(new JSONObject(value.getValue()));
 						}
 					} while (value != null);
 				}
-	
+
 				@Override
 				public void itemRemoved(ItemEvent<HazelcastJsonValue> item) {
 					// ignore
@@ -135,19 +92,6 @@ public class HazelcastChart extends Application implements Constants {
 		HazelcastClient.shutdownAll();
 	}
 
-	private static void writeLine() {
-		System.out.println();
-	}
-
-	private static void writeLine(String line) {
-		System.out.println(line);
-	}
-
-	@SuppressWarnings("unused")
-	private static void write(String str) {
-		System.out.print(str);
-	}
-
 	private static void usage() {
 		String executable = System.getProperty(PROPERTY_executableName, HazelcastChart.class.getName());
 		writeLine();
@@ -155,7 +99,9 @@ public class HazelcastChart extends Application implements Constants {
 		writeLine("   " + executable + " - Chart the Hazelcast data published by the simulator");
 		writeLine();
 		writeLine("SNOPSIS");
-		writeLine("   " + executable + " -name ds_name [-ds map|rmap|queue|topic|rtopic] [-?]");
+		writeLine("   " + executable + " -name ds_name [-ds map|rmap|queue|topic|rtopic]");
+		writeLine(
+				"                   [-features feature_list] [-time-format time_format] [-window-size window_size] [-?]");
 		writeLine();
 		writeLine("DESCRIPTION");
 		writeLine("   Charts the Hazelcast data published by the simulator.");
@@ -170,41 +116,39 @@ public class HazelcastChart extends Application implements Constants {
 		writeLine("   -key key_value");
 		writeLine("             Key value to listen on. This option applies to map and rmap only. If");
 		writeLine("             unspecified, it plots updates for all key values. Specify this option for");
-		writeLine("             data structures configured with 'keyType: FIXED'.");	
+		writeLine("             data structures configured with 'keyType: FIXED'.");
+		writeLine();
+		writeLine("   -features feature_list");
+		writeLine("             Optional comma separated list of features (attributes) to plot. If unspecified,");
+		writeLine("             it plots all numerical features.");
+		writeLine();
+		writeLine("   -time-format time_format");
+		writeLine("             Optional time format. The time format must match the 'time' attibute in the payload.");
+		writeLine("             Default: \"" + SimulatorConfig.TIME_FORMAT + "\"");
+		writeLine();
+		writeLine("   -window-size");
+		writeLine("             Optional chart window size. The maximum number of data points to display before start");
+		writeLine("             trending the chart.");
+		writeLine("             Default: " + WINDOW_SIZE);
 		writeLine();
 		writeLine("SEE ALSO");
 		writeLine("   simulator(1)");
 		writeLine("   etc/hazelcast-client.xml");
 		writeLine("   etc/simulator-edge.yaml");
+		writeLine("   etc/simulator-hazelcast.yaml");
 		writeLine("   etc/simulator-misc.yaml");
 		writeLine("   etc/simulator-padogrid.yaml");
+		writeLine("   etc/simulator-padogrid-all.yaml");
 		writeLine("   etc/simulator-stocks.yaml");
 		writeLine("   etc/template-simulator-padogrid.yaml");
 		writeLine();
-	}
-
-	static void updateChart(HazelcastJsonValue evalue) {
-		JSONObject json = new JSONObject(evalue.getValue());
-		String time = json.getString("time");
-		double value = json.getDouble("value");
-		Platform.runLater(() -> {
-			try {
-				Date date = simpleDateFormat.parse(time);
-				date.getTime();
-				series.getData().add(new XYChart.Data<>(simpleDateFormat.format(date), value));
-				if (series.getData().size() > WINDOW_SIZE)
-					series.getData().remove(0);
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
 	}
 
 	public static void main(String[] args) {
 		String dsName = null;
 		String dsStr = null;
 		String key = null;
+		int windowSize = WINDOW_SIZE;
 
 		String arg;
 		for (int i = 0; i < args.length; i++) {
@@ -224,14 +168,50 @@ public class HazelcastChart extends Application implements Constants {
 				if (i < args.length - 1) {
 					key = args[++i].trim();
 				}
+			} else if (arg.equals("-features")) {
+				if (i < args.length - 1) {
+					String val = args[++i].trim();
+					val = val.replaceAll("\\s", "");
+					features = val.split(",");
+					Arrays.sort(features);
+				}
+			} else if (arg.equals("-time-format")) {
+				if (i < args.length - 1) {
+					timeFormat = args[++i].trim();
+				}
+			} else if (arg.equals("-window-size")) {
+				if (i < args.length - 1) {
+					String val = args[++i].trim();
+					try {
+						windowSize = Integer.parseInt(val);
+					} catch (Exception ex) {
+						System.err.printf("ERROR: Invalid window-size [%s]%n. Command aborted.", val);
+						System.exit(1);
+					}
+				}
 			}
 		}
 
 		// Validate inputs
 		if (dsName == null) {
-			System.err.printf("ERROR: Data structure name not specified: [-name].%n");
+			System.err.printf("ERROR: Data structure name not specified: [-name]. Command aborted.%n");
 			System.exit(1);
 		}
+
+		if (windowSize < MIN_WINDOW_SIZE) {
+			System.out.printf("Window size too small [%d]. Setting to the minimum value of %d...%n", windowSize,
+					MIN_WINDOW_SIZE);
+		} else if (windowSize > 10000) {
+			System.out.printf("Window size too large [%d]. Setting to the maximum value of %d...%n", windowSize,
+					MAX_WINDOW_SIZE);
+			WINDOW_SIZE = MAX_WINDOW_SIZE;
+		} else {
+			WINDOW_SIZE = windowSize;
+		}
+
+		// Set time format
+		simpleDateFormat = new SimpleDateFormat(timeFormat);
+
 		SimulatorConfig.DsType ds = SimulatorConfig.DsType.TOPIC;
 		if (dsStr != null) {
 			ds = SimulatorConfig.DsType.valueOf(dsStr.toUpperCase());
@@ -258,15 +238,15 @@ public class HazelcastChart extends Application implements Constants {
 					@Override
 					public void entryAdded(EntryEvent<String, HazelcastJsonValue> event) {
 						HazelcastJsonValue value = event.getValue();
-						updateChart(value);
+						updateChart(new JSONObject(value.getValue()));
 					}
 				}, true);
 				hzMap.addEntryListener(new EntryUpdatedListener<String, HazelcastJsonValue>() {
-	
+
 					@Override
 					public void entryUpdated(EntryEvent<String, HazelcastJsonValue> event) {
 						HazelcastJsonValue value = event.getValue();
-						updateChart(value);
+						updateChart(new JSONObject(value.getValue()));
 					}
 				}, true);
 				chartTitle = "Map: " + dsName;
@@ -275,19 +255,19 @@ public class HazelcastChart extends Application implements Constants {
 					@Override
 					public void entryAdded(EntryEvent<String, HazelcastJsonValue> event) {
 						HazelcastJsonValue value = event.getValue();
-						updateChart(value);
+						updateChart(new JSONObject(value.getValue()));
 					}
 				}, key, true);
 				hzMap.addEntryListener(new EntryUpdatedListener<String, HazelcastJsonValue>() {
 					@Override
 					public void entryUpdated(EntryEvent<String, HazelcastJsonValue> event) {
 						HazelcastJsonValue value = event.getValue();
-						updateChart(value);
+						updateChart(new JSONObject(value.getValue()));
 					}
 				}, key, true);
 				chartTitle = "Map: " + dsName + " (key=" + key + ")";
 			}
-			
+
 			break;
 
 		case RMAP:
@@ -323,13 +303,13 @@ public class HazelcastChart extends Application implements Constants {
 				@Override
 				public void entryUpdated(EntryEvent<String, HazelcastJsonValue> event) {
 					HazelcastJsonValue value = event.getValue();
-					updateChart(value);
+					updateChart(new JSONObject(value.getValue()));
 				}
 
 				@Override
 				public void entryAdded(EntryEvent<String, HazelcastJsonValue> event) {
 					HazelcastJsonValue value = event.getValue();
-					updateChart(value);
+					updateChart(new JSONObject(value.getValue()));
 				}
 			});
 			chartTitle = "ReplicatedMap: " + dsName;
@@ -349,7 +329,7 @@ public class HazelcastChart extends Application implements Constants {
 				@Override
 				public void onMessage(Message<HazelcastJsonValue> message) {
 					HazelcastJsonValue value = message.getMessageObject();
-					updateChart(value);
+					updateChart(new JSONObject(value.getValue()));
 				}
 			});
 			chartTitle = "Reliable Topic: " + dsName;
@@ -364,7 +344,7 @@ public class HazelcastChart extends Application implements Constants {
 				@Override
 				public void onMessage(Message<HazelcastJsonValue> message) {
 					HazelcastJsonValue value = message.getMessageObject();
-					updateChart(value);
+					updateChart(new JSONObject(value.getValue()));
 				}
 
 			});

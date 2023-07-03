@@ -94,7 +94,7 @@ cd_app simulator/bin_sh
 
 ### 4. Display data in trending chart
 
-By default, the `simulator` command loads the `etc/simulator-padogrid.yaml` file, which defines numerous equations. Each equation is invoked by the paired publisher which defines the topic to publish the data. Take a look at the configuration file and select the topics that you want to view in charts. 
+By default, the `simulator` command loads the `etc/simulator-padogrid.yaml` file, which defines numerous equations. Each equation is invoked by the paired publisher which defines the data structure to publish the data. Take a look at the configuration file and select the data structure that you want to view in charts. 
 
 ```bash
 cd_app simulator
@@ -118,7 +118,7 @@ NAME
 
 SNOPSIS
    chart_mqtt [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]]
-              [-fos fos] [-qos qos] -t topic_filter [-?]
+              [-fos fos] [-qos qos] [-features feature_list] [-time-format time_format] -t topic_filter [-?]
 
 DESCRIPTION
    Charts the MQTT data published by the simulator.
@@ -158,8 +158,26 @@ OPTIONS
    -qos qos
              Optional QoS value. Valid values are 0, 1, 2. Default: 0.
 
+   -features feature_list
+             Optional comma separated list of features (attributes) to plot. If unspecified,
+             it plots all numerical features.
+
+   -time-format time_format
+             Optional time format. The time format must match the 'time' attibute in the payload.
+             Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
    -t topic_filter
              Topic filter.
+
+SEE ALSO
+   simulator(1)
+   etc/mqttv5-client.yaml
+   etc/simulator-edge.yaml
+   etc/simulator-misc.yaml
+   etc/simulator-padogrid.yaml
+   etc/simulator-padogrid-all.yaml
+   etc/simulator-stocks.yaml
+   etc/template-simulator-padogrid.yaml
 ```
 
 Try running the following examples.
@@ -187,7 +205,8 @@ NAME
    chart_hazelcast - Chart the Hazelcast data published by the simulator
 
 SNOPSIS
-   chart_hazelcast -name ds_name [-ds map|rmap|queue|topic|rtopic] [-?]
+   chart_hazelcast -name ds_name [-ds map|rmap|queue|topic|rtopic]
+                   [-features feature_list] [-time-format time_format] [-?]
 
 DESCRIPTION
    Charts the Hazelcast data published by the simulator.
@@ -204,12 +223,22 @@ OPTIONS
              unspecified, it plots updates for all key values. Specify this option for
              data structures configured with 'keyType: FIXED'.
 
+   -features feature_list
+             Optional comma separated list of features (attributes) to plot. If unspecified,
+             it plots all numerical features.
+
+   -time-format time_format
+             Optional time format. The time format must match the 'time' attibute in the payload.
+             Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
 SEE ALSO
    simulator(1)
    etc/hazelcast-client.xml
    etc/simulator-edge.yaml
+   etc/simulator-hazelcast.yaml
    etc/simulator-misc.yaml
    etc/simulator-padogrid.yaml
+   etc/simulator-padogrid-all.yaml
    etc/simulator-stocks.yaml
    etc/template-simulator-padogrid.yaml
 ```
@@ -228,7 +257,7 @@ Try running the following examples.
 
 #### 4.3. Simulator configuration files
 
-Application specific data feeds are defined in `etc/simulator-stock.yaml` and `etc/simulator-misc.yaml`. Try running them.
+Application specific data feeds are defined in `etc/simulator-stocks.yaml` and `etc/simulator-misc.yaml`. Try running them.
 
 First start the simulator:
 
@@ -244,8 +273,7 @@ Run MQTT charts:
 
 ```bash
 # Display simulator-stocks.yaml
-./chart_mqtt -t test/stock1
-./chart_mqtt -t test/stock2
+./chart_mqtt -t test/stocks
 
 # Display simulator-misc.yaml
 ./chart_mqtt -t test/igloo
@@ -258,14 +286,23 @@ Run Hazelcast charts:
 
 ```bash
 # Display simulator-stocks.yaml
-./chart_hazelcast -name stock1 -ds topic
-./chart_hazelcast -name stock2 -ds topic
+./chart_hazelcast -name stocks -ds topic
 
 # Display simulator-misc.yaml (publishes data to map, rmap, queue, topic, rtopic)
 ./chart_hazelcast -name igloo -ds topic
 ./chart_hazelcast -name temperature -ds topic
 ./chart_hazelcast -name carcost -ds topic
 ./chart_hazelcast -name heartbeat -ds topic
+```
+
+The simulator supports multiple features per payload. Each payload represents an equation that generated data. For example, `etc/simulator-stocks.yaml` generates two (2) stock prices per payload. By default, the `chart_*` commands display all the numerical features found in the payload. To select features to display, sepcify the `-features` option. For example, the following displays only the `stock1` feature.
+
+```bash
+# MQTT
+./chart_mqtt -t test/stocks -features stock1
+
+# Hazelcast
+./chart_hazelcast -name stocks -features stock1
 ```
 
 The provided configuration files also include Hazelcast data structures other than topics.
@@ -290,13 +327,18 @@ publishers:
   - product: hazelcast
     enabled: true
     name: carcost-publisher
-    equationName: carcost
+    # Interval between timestamps (msec). Timestamp is part of payload.
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      # Time delay between equation executions (msec)
+      equationDelay: 500
     dataStructure:
       type: map
       name: carcost
       keyType: SEQUENCE
       keySequenceStart: 1000
-    timeInterval: 500
 ```
 
 Run Hazelcast chart:
@@ -307,6 +349,23 @@ cd_app simulator/bin_sh
 ```
 
 ✏️  Note that `chart_hazelcast` first drains and plots existing entries in the Hazelcast `Queue` data structure before plotting updates.
+
+#### 4.4. `etc/simulator-padogrid-all.yaml`
+
+The `etc/simulator-padogrid-all.yaml` file places all the features defined in `simulator-padogrid.yaml` into a single payload. The resulting chart stands out as it plots all the features.
+
+```bash
+cd_app simulator/bin_sh
+
+# Simulator
+./simulator -simulator-config ../etc/simulator-padogrid-all.yaml
+
+# MQTT
+./chart_mqtt -t test/all
+
+# Hazelcast
+./chart_hazelcast -name test/all
+```
 
 ## Tuning Data Feeds
 
@@ -320,6 +379,10 @@ cat etc/template-simulator-padogrid.yaml
 Output:
 
 ```yaml
+# Optional time format.
+# Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+timeFormat: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
 # Define one or more equations
 equations:
     # Required unique equation name. Required for configuring publisher
@@ -331,18 +394,6 @@ equations:
 
     # Optional equation description (for documentation only)
     description: null
-
-    # Optional time format.
-    # Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-    timeFormat: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-
-    # Optional start time. Must conform to timeFormat. Ex: "2022-10-10T09:00:00.000-0400"
-    # Default: current time.
-    startTime: "2022-10-10T09:00:00.000-0400"
-
-    # Optional time interval in milliseconds
-    # Default: 500
-    timeInterval: 500
 
     # Optional miniumn base (x) value. The base is equivalent to x in y=x.
     # Default: -1
@@ -393,24 +444,6 @@ equations:
     # Default: REVERSE
     type: REVERSE
 
-    # Optional base time reset. This value is added to the 'startTime' adjusted base time when the
-    # base (x) value reaches 'minBase' or 'maxBase'. The current base time is first reset to the
-    # date portion and then this value is added to it as shown in the following example.
-    #
-    #   resetBaseTime: 86_400_000 (1 day)
-    #   startTime: "2022-10-10T09:00:00.000-0400"
-    #   base time: "2024-11-11T11:12:34.565-0400"
-    #   new base time: "2024-11-11T09:00:00.000-0400" + resetStartTime
-    #   new base time: "2024-11-12T09:00:00.000-0400"
-    #
-    # The default value of 0 does nothing and proceeds with the current base time.
-    #
-    # By resetting the base time, you can simulate a realistic time capsule on a window of curve
-    # catured by minBase and maxBase.
-    #
-    # Default: 0
-    resetBaseTime: 0
-
 publishers:        
     # Product name. Valid values are MQTT|HAZELCAST
     # Required product name.
@@ -424,9 +457,30 @@ publishers:
     # Required unique publisher name.
     name: null
 
-    # Required equation name. This must be one of the equation names defined in
-    # in the equations element.
-    equationName: null
+    # Initial delay in milliseconds. The publisher waits this amount of time before start
+    # publishing data.
+    # Default: 0
+    initialDelay: 0
+
+    # Time interval in milliseconds. Timestamp is advanced by this interval per equation execution.
+    # Timestamp is included in the payload with the key 'time'.
+    timeInterval: 500
+
+    # Start time in 'timeFormat'. The timestamp (base time) begins at 'startTime' and incremented
+    # by `timeInterval' per equation exection.
+    # Default: current time
+    startTime: null
+
+    # Required equations. List one or more equation names defined in the root equations
+    # element.
+    equations:
+      # List of equations to execute.
+      equationNames: []
+      
+      # Equation delay time in milliseconds. The publisher periodically delays this long before
+      # publishing data. Set this attribute to control the rate at which data is published.
+      # Default: 500
+      equationDelay: 500
 
     # Data structure. Each product has one or more data structure types as follows.
     #
@@ -489,14 +543,28 @@ publishers:
       # Default: 1
       keySquenceStart: 1
     
-    # Initial delay in milliseconds. The publisher waits this amount of time before start
-    # publishing data.
-    # Default: 0
-    initialDelay: 0
+    # Optional reset. Set this element to reset the base time when it reaches 'minBase'
+    # or 'maxBase'. By resetting the base time, you can simulate a repeatable time capsule
+    # on a window of curve catured by 'minBase' and 'maxBase'.
+    reset:
+      # Set the equation that will be used to reset the base time. This equation serves
+      # as the basis for other equations.
+      equationName: null
 
-    # Time interval in milliseconds. The publisher periodically publishes data at this
-    # timeInterval.
-    timeInterval: 500
+      # Base time reset. This value is added to the base time when the base (x) value when it
+      # reaches 'minBase' or 'maxBase'. The current base time is first reset to the date
+      # portion, and then this value is added to it as shown in the following example.
+      #
+      #   reset.resetBaseTime: 86_400_000 (1 day)
+      #   startTime: "2022-10-10T09:00:00.000-0400"
+      #   base time: "2024-11-11T11:12:34.565-0400"
+      #   new base time: "2024-11-11T09:00:00.000-0400" + resetStartTime
+      #   new base time: "2024-11-12T09:00:00.000-0400"
+      #
+      # The default value of 0 does nothing and proceeds with the current base time.
+      #
+      # Default: 0
+      resetBaseTime: 0
 ```
 
 ## Adding New Equations
@@ -546,42 +614,51 @@ equations:
   - name: linear
     formula: y=x+1
     description: linear
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: mydatafeed.MyQueations.linear
   - name: quadratic
     formula: y=x^2+x+1
     description: quadratic
-    timeInterval: 500
     baseSpread: 0.1
     jitter: 0.1
     calculationFunction: mydatafeed.MyQueations.quadratic
 
 publishers:
   - product: mqtt
-    name: linear-publisher
-    equationName: linear
+    name: my-publisher
+    # Interval between timestamps (msec). Timestamp is part of payload.
+    timeInterval: 500
+    equations:
+      equationNames: [linear, quadratic]
+      # Time delay between equation executions (msec)
+      equationDelay: 500
     dataStructure:
       type: topic
-      name: mydatafeed/linear
-    interval: 500
-  - product: mqtt
-    name: quadratic-publisher
-    equationName: quadratic
-    dataStructure:
-      type: topic
-      name: mydatafeed/quadratic
-    interval: 500
+      name: mydatafeed/mydata
 ```
 
-Now, run simulator and chart.
+Now, run `simulator` and `chart_mqtt`.
 
 ```bash
 cd_app simulator/bin_sh
 ./simulator -simulator-config ../etc/simulator-mydatafeed.yaml
-./chart_mqtt -t mydatafeed/linear
-./chart_mqtt -t mydatafeed/quadratic
+./chart_mqtt -t mydatafeed/mydata
+```
+
+### 4.4. `etc/simulator-padogrid-all.yaml`
+
+The `etc/simulator-padogrid-all.yaml` file places all the features defined in `simulator-padogrid.yaml` into a single payload.
+
+```bash
+cd_app simulator/bin_sh
+./simulator -simulator-config ../etc/simulator-padogrid-all.yaml
+
+# MQTT
+./chart_mqtt -t test/all
+
+# Hazelcast
+./chart_hazelcast -name test/all
 ```
 
 ## QuestDB
@@ -598,7 +675,8 @@ docker run -p 9000:9000 -p 9009:9009 -p 8812:8812 questdb/questdb
 
 ```bash
 cd_app simulator/bin_sh
-./simulator -config ../etc/mqttv5-questdb.yaml -simulator ../etc/simulator-stocks.yaml
+./simulator -config ../etc/mqttv5-questdb.yaml -simulator-config ../etc/simulator-stocks.yaml
+./simulator -config ../etc/mqttv5-questdb.yaml -simulator-config ../etc/simulator-padogrid-all.yaml
 ```
 
 3. Open QuestDB console

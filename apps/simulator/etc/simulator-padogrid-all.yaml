@@ -143,166 +143,26 @@ equations:
     jitter: 0.1
     calculationFunction: padogrid.simulator.eq.Equations.decic
 
-publishers:            
+publishers:        
   # MQTT
   - product: mqtt
-    name: sine-publisher
+    name: all-publisher
     timeInterval: 500
     equations:
-      equationNames: [sine]
+      equationNames: [sine,dampedSineWave,heartbeat,tan,tanh,exp,circle,decay,expDecay,linear,quadratic,cubic,quartic,quintic,circle,sextic,octic,nontic,decic]
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/sine
-  - product: mqtt
-    name: dampedSineWave-publisher
+      name: test/all
+ 
+  # ---------
+  # Hazelcast
+  # ---------
+
+  - product: hazelcast
+    name: all-publisher
     timeInterval: 500
     equations:
-      equationNames: [dampedSineWave]
+      equationNames: [sine,dampedSineWave,heartbeat,tan,tanh,exp,circle,decay,expDecay,linear,quadratic,cubic,quartic,quintic,circle,sextic,octic,nontic,decic]
     dataStructure:
       type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/dampedSineWave
-  - product: mqtt
-    name: heartbeat-publisher
-    timeInterval: 30
-    equations:
-      equationNames: [heartbeat]
-      equationDelay: 30
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/heartbeat
-  - product: mqtt
-    name: tan-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [tan]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/tan
-  - product: mqtt
-    name: tanh-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [tanh]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/tanh
-  - product: mqtt
-    name: exp-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [exp]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/exp
-  - product: mqtt
-    name: circle-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [circle]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/circle
-  - product: mqtt
-    name: decay-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [decay]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/decay
-  - product: mqtt
-    name: expDecay-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [expDecay]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/expDecay
-  - product: mqtt
-    name: linear-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [linear]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/linear
-  - product: mqtt
-    name: quadratic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [quadratic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/quadratic
-  - product: mqtt
-    name: cubic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [cubic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/cubic
-  - product: mqtt
-    name: quartic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [quartic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/quartic
-  - product: mqtt
-    name: quintic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [quintic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/quintic
-  - product: mqtt
-    name: circle-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [circle]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/circle
-  - product: mqtt
-    name: sextic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [sextic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/sextic
-  - product: mqtt
-    name: septic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [septic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/septic
-  - product: mqtt
-    name: octic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [octic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/octic
-  - product: mqtt
-    name: nontic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [nontic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/nontic
-  - product: mqtt
-    name: decic-publisher
-    timeInterval: 500
-    equations:
-      equationNames: [decic]
-    dataStructure:
-      type: topic
-      name: ${env:PADOGRID_TOPIC_PREFIX}/decic
+      name: test/all

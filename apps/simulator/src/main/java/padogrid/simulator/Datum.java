@@ -16,8 +16,6 @@
 package padogrid.simulator;
 
 import java.lang.reflect.InvocationTargetException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 public class Datum {
 	private long startTimestamp = System.currentTimeMillis();
@@ -36,16 +34,6 @@ public class Datum {
 	 */
 	public Datum(Equation equation) {
 		baseValue = equation.getMinBase();
-		SimpleDateFormat dateFormatter = new SimpleDateFormat(equation.getTimeFormat());
-		if (equation.getStartTime() != null) {
-			try {
-				startTimestamp = dateFormatter.parse(equation.getStartTime()).getTime();
-				timestamp = startTimestamp;
-			} catch (ParseException e) {
-				// ignore
-			}
-		}
-
 		if (equation.getCalculation() != null) {
 			value = (double) equation.getCalculation().calculate(baseValue);
 		} else if (equation.getCalculationMethod() != null) {

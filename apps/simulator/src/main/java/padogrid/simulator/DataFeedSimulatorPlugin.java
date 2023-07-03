@@ -21,9 +21,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -52,6 +58,7 @@ import padogrid.simulator.config.SimulatorConfig.DataStructure;
 import padogrid.simulator.config.SimulatorConfig.DsType;
 import padogrid.simulator.config.SimulatorConfig.Product;
 import padogrid.simulator.config.SimulatorConfig.Publisher;
+import padogrid.simulator.config.SimulatorConfig.PublisherEquation;
 
 /**
  * {@linkplain DataFeedSimulatorPlugin} is the simulator plugin that publishes
@@ -65,7 +72,13 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 	private String pluginName;
 	private String description;
 	private SimulatorConfig simulatorConfig;
+
+	// <equationName, Equation>
 	private HashMap<String, Equation> equationMap = new HashMap<String, Equation>(10);
+
+	// <publisherName, Equation[]>
+	private HashMap<Publisher, Equation[]> publisherMap = new HashMap<Publisher, Equation[]>(10);
+
 	private HaMqttClient haclient;
 
 	private HazelcastInstance hzInstance;
@@ -294,162 +307,168 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 			System.exit(-3);
 		}
 
-		int count = 0;
 		for (Publisher publisher : publishers) {
-			if (productName == null || productName.equalsIgnoreCase(publisher.getProduct().name())) {
-				String equationName = publisher.getEquationName();
-				Equation equation = getEquation(equationName);
-				if (equation == null) {
-					System.err.printf(
-							"ERROR: Equation undefined for the publisher [product=%s, publisher=%s, equationName=%s]. Publisher discarded.%n",
-							productName, publisher.getName(), equationName);
-				} else if (publisher.isEnabled()) {
-					count++;
+			if (publisher.isEnabled()) {
+				if (productName == null || productName.equalsIgnoreCase(publisher.getProduct().name())) {
+					// If Hazelcast is not connected then skip
+					if ((publisher.getProduct() == Product.HAZELCAST || publisher.getProduct() == Product.hazelcast)
+							&& hzInstance == null) {
+						continue;
+					}
+					PublisherEquation publisherEquations = publisher.getEquations();
+					if (publisherEquations != null) {
+						String[] equationNames = publisherEquations.getEquationNames();
+						ArrayList<Equation> equationList = new ArrayList<Equation>(equationNames.length);
+						for (String equationName : equationNames) {
+							Equation equation = getEquation(equationName);
+							if (equation == null) {
+								System.err.printf(
+										"ERROR: Equation undefined for the publisher [product=%s, publisher=%s, equationName=%s]. Equation ignored.%n",
+										productName, publisher.getName(), equationName);
+							} else {
+								equationList.add(equation);
+							}
+						}
+						if (equationList.size() > 0) {
+							publisherMap.put(publisher, equationList.toArray(new Equation[0]));
+						}
+					}
 				}
 			}
 		}
 
 		// Launch publisher threads
-		ScheduledExecutorService ses = Executors.newScheduledThreadPool(count);
-		for (Publisher publisher : publishers) {
-			Equation equation = getEquation(publisher.getEquationName());
-			if (equation == null || publisher.isEnabled() == false
-					|| ((publisher.getProduct() == Product.HAZELCAST || publisher.getProduct() == Product.hazelcast)
-							&& hzInstance == null)) {
-				continue;
-			}
-			if (productName == null || productName.equalsIgnoreCase(publisher.getProduct().name())) {
-				ses.scheduleAtFixedRate(new Runnable() {
+		ScheduledExecutorService ses = Executors.newScheduledThreadPool(publisherMap.size());
+		Iterator<Map.Entry<Publisher, Equation[]>> iterator = publisherMap.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<Publisher, Equation[]> entry = iterator.next();
+			Publisher publisher = entry.getKey();
+			Equation[] equations = entry.getValue();
 
-					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-							equation.getTimeFormat() == null ? "yyyy-MM-dd'T'HH:mm:ss.SSSZ" : equation.getTimeFormat());
-					Datum datum = new Datum(equation);
-					long keySeq = 1;
+			ses.scheduleAtFixedRate(new Runnable() {
 
-					IMap<String, HazelcastJsonValue> hzMap = hzInstance != null
-							&& (publisher.getDataStructure().getType() == DsType.MAP
-									|| publisher.getDataStructure().getType() == DsType.map)
-											? hzInstance.getMap(publisher.getDataStructure().getName())
-											: null;
-					ReplicatedMap<String, HazelcastJsonValue> hzRMap = hzInstance != null
-							&& (publisher.getDataStructure().getType() == DsType.RMAP
-									|| publisher.getDataStructure().getType() == DsType.rmap)
-											? hzInstance.getReplicatedMap(publisher.getDataStructure().getName())
-											: null;
-					ITopic<HazelcastJsonValue> hzTopic = hzInstance != null
-							&& (publisher.getDataStructure().getType() == DsType.TOPIC
-									|| publisher.getDataStructure().getType() == DsType.topic)
-											? hzInstance.getTopic(publisher.getDataStructure().getName())
-											: null;
-					ITopic<HazelcastJsonValue> hzRTopic = hzInstance != null
-							&& (publisher.getDataStructure().getType() == DsType.RTOPIC
-									|| publisher.getDataStructure().getType() == DsType.rtopic)
-											? hzInstance.getReliableTopic(publisher.getDataStructure().getName())
-											: null;
-					IQueue<HazelcastJsonValue> hzQueue = hzInstance != null
-							&& (publisher.getDataStructure().getType() == DsType.QUEUE
-									|| publisher.getDataStructure().getType() == DsType.queue)
-											? hzInstance.getQueue(publisher.getDataStructure().getName())
-											: null;
+				PublisherDatum publisherDatum = new PublisherDatum(publisher, equations);
+				long keySeq = 1;
 
-					@Override
-					public void run() {
-						DataStructure ds = publisher.getDataStructure();
-						datum = equation.updateDatum(datum);
-						JSONObject json = new JSONObject();
-						String time = simpleDateFormat.format(datum.getTimestamp());
-						json.put("time", time);
-						json.put("value", datum.getValue());
+				IMap<String, HazelcastJsonValue> hzMap = hzInstance != null
+						&& (publisher.getDataStructure().getType() == DsType.MAP
+								|| publisher.getDataStructure().getType() == DsType.map)
+										? hzInstance.getMap(publisher.getDataStructure().getName())
+										: null;
+				ReplicatedMap<String, HazelcastJsonValue> hzRMap = hzInstance != null
+						&& (publisher.getDataStructure().getType() == DsType.RMAP
+								|| publisher.getDataStructure().getType() == DsType.rmap)
+										? hzInstance.getReplicatedMap(publisher.getDataStructure().getName())
+										: null;
+				ITopic<HazelcastJsonValue> hzTopic = hzInstance != null
+						&& (publisher.getDataStructure().getType() == DsType.TOPIC
+								|| publisher.getDataStructure().getType() == DsType.topic)
+										? hzInstance.getTopic(publisher.getDataStructure().getName())
+										: null;
+				ITopic<HazelcastJsonValue> hzRTopic = hzInstance != null
+						&& (publisher.getDataStructure().getType() == DsType.RTOPIC
+								|| publisher.getDataStructure().getType() == DsType.rtopic)
+										? hzInstance.getReliableTopic(publisher.getDataStructure().getName())
+										: null;
+				IQueue<HazelcastJsonValue> hzQueue = hzInstance != null
+						&& (publisher.getDataStructure().getType() == DsType.QUEUE
+								|| publisher.getDataStructure().getType() == DsType.queue)
+										? hzInstance.getQueue(publisher.getDataStructure().getName())
+										: null;
 
-						try {
-							if (publisher.getProduct() == Product.MQTT || publisher.getProduct() == Product.mqtt) {
-								String topic = ds.getName();
-								haclient.publish(topic, json.toString().getBytes(), 0, false);
-								if (isQuiet == false) {
-									System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(), topic,
-											json);
-								}
-							} else {
-								HazelcastJsonValue value = new HazelcastJsonValue(json.toString());
-								switch (ds.getType()) {
-								case MAP:
-								case RMAP:
-								case map:
-								case rmap:
-									String key;
-									switch (ds.getKeyType()) {
-									case FIXED:
-										key = ds.getKeyValue();
-										break;
+				@Override
+				public void run() {
+					DataStructure ds = publisher.getDataStructure();
+					JSONObject json = publisherDatum.generateData();
 
-									case TIME:
-										key = time;
-										break;
-
-									case UUID:
-										key = UUID.randomUUID().toString();
-										break;
-
-									case SEQUENCE:
-									default:
-										key = Long.toString(keySeq);
-										keySeq++;
-										break;
-									}
-									if (hzMap != null) {
-										hzMap.set(key, value);
-										if (isQuiet == false) {
-											System.out.printf("product=%s, map=%s: %s, %s%n", publisher.getProduct(),
-													hzMap.getName(), key, json);
-										}
-									} else if (hzRMap != null) {
-										hzRMap.put(key, value);
-										if (isQuiet == false) {
-											System.out.printf("product=%s, rmap=%s: %s, %s%n", publisher.getProduct(),
-													hzRMap.getName(), key, json);
-										}
-									}
-									break;
-
-								case QUEUE:
-								case queue:
-									hzQueue.offer(value);
-									if (isQuiet == false) {
-										System.out.printf("product=%s, queue=%s: %s%n", publisher.getProduct(),
-												hzQueue.getName(), json);
-									}
-									break;
-
-								case RTOPIC:
-								case rtopic:
-									hzRTopic.publish(value);
-									if (isQuiet == false) {
-										System.out.printf("product=%s, rtopic=%s: %s%n", publisher.getProduct(),
-												hzRTopic.getName(), json);
-									}
-									break;
-
-								case TOPIC:
-								case topic:
-								default:
-									hzTopic.publish(value);
-									if (isQuiet == false) {
-										System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(),
-												hzTopic.getName(), json);
-									}
-									break;
-								}
+					try {
+						if (publisher.getProduct() == Product.MQTT || publisher.getProduct() == Product.mqtt) {
+							String topic = ds.getName();
+							haclient.publish(topic, json.toString().getBytes(), 0, false);
+							if (isQuiet == false) {
+								System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(), topic, json);
 							}
-						} catch (Exception ex) {
-							// TODO: Ignore for now
+						} else {
+							HazelcastJsonValue value = new HazelcastJsonValue(json.toString());
+							switch (ds.getType()) {
+							case MAP:
+							case RMAP:
+							case map:
+							case rmap:
+								String key;
+								switch (ds.getKeyType()) {
+								case FIXED:
+									key = ds.getKeyValue();
+									break;
+
+								case TIME:
+									key = json.getString("time");
+									break;
+
+								case UUID:
+									key = UUID.randomUUID().toString();
+									break;
+
+								case SEQUENCE:
+								default:
+									key = Long.toString(keySeq);
+									keySeq++;
+									break;
+								}
+								if (hzMap != null) {
+									hzMap.set(key, value);
+									if (isQuiet == false) {
+										System.out.printf("product=%s, map=%s: %s, %s%n", publisher.getProduct(),
+												hzMap.getName(), key, json);
+									}
+								} else if (hzRMap != null) {
+									hzRMap.put(key, value);
+									if (isQuiet == false) {
+										System.out.printf("product=%s, rmap=%s: %s, %s%n", publisher.getProduct(),
+												hzRMap.getName(), key, json);
+									}
+								}
+								break;
+
+							case QUEUE:
+							case queue:
+								hzQueue.offer(value);
+								if (isQuiet == false) {
+									System.out.printf("product=%s, queue=%s: %s%n", publisher.getProduct(),
+											hzQueue.getName(), json);
+								}
+								break;
+
+							case RTOPIC:
+							case rtopic:
+								hzRTopic.publish(value);
+								if (isQuiet == false) {
+									System.out.printf("product=%s, rtopic=%s: %s%n", publisher.getProduct(),
+											hzRTopic.getName(), json);
+								}
+								break;
+
+							case TOPIC:
+							case topic:
+							default:
+								hzTopic.publish(value);
+								if (isQuiet == false) {
+									System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(),
+											hzTopic.getName(), json);
+								}
+								break;
+							}
+						}
+					} catch (Exception ex) {
+						// TODO: Ignore for now
 //							System.err.printf("ERROR: Exception occurred while invoking data structure [%s]%n",
 //									ex.getMessage());
-						}
 					}
+				}
 
-				}, publisher.getInitialDelay(), publisher.getTimeInterval(), TimeUnit.MILLISECONDS);
-			}
+			}, publisher.getInitialDelay(), publisher.getEquations().getEquationDelay(), TimeUnit.MILLISECONDS);
 		}
+
 	}
 
 	private Equation getEquation(String equationName) {
@@ -537,5 +556,140 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		writeLine("   etc/simulator-stocks.yaml");
 		writeLine("   etc/template-simulator-padogrid.yaml");
 		writeLine();
+	}
+
+	class PublisherDatum {
+		Equation[] equations;
+		Datum[] data;
+		Equation resetEquation;
+		Datum resetDatum;
+		long timeInterval;
+		long startTime;
+		long timestamp;
+		SimpleDateFormat simpleDateFormat;
+		private long resetBaseTime = 0;
+
+		PublisherDatum(Publisher publisher, Equation[] equations) {
+			this.equations = equations;
+			this.data = new Datum[equations.length];
+			for (int i = 0; i < data.length; i++) {
+				data[i] = new Datum();
+			}
+			this.timeInterval = publisher.getTimeInterval();
+			this.simpleDateFormat = new SimpleDateFormat(
+					simulatorConfig.getTimeFormat() == null ? "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+							: simulatorConfig.getTimeFormat());
+
+			if (publisher.getStartTime() == null) {
+				this.startTime = System.currentTimeMillis();
+			} else {
+				try {
+					this.startTime = simpleDateFormat.parse(publisher.getStartTime()).getTime();
+				} catch (ParseException e) {
+					System.err.printf(
+							"ERROR: Data parser error [startTime=%s, timeFormat=%s]. Using current time instead.%n",
+							publisher.getStartTime(), simulatorConfig.getTimeFormat());
+					this.startTime = System.currentTimeMillis();
+				}
+			}
+			this.timestamp = startTime;
+
+			// Determine reset equation if defined
+			if (publisher.getReset() != null && publisher.getReset().getEquationName() != null) {
+				if (publisher.getReset().getBaseTime() > 0) {
+					String equationName = publisher.getReset().getEquationName();
+					resetBaseTime = publisher.getReset().getBaseTime();
+					for (int i = 0; i < equations.length; i++) {
+						if (equations[i].getName().equals(equationName)) {
+							resetEquation = equations[i];
+							resetDatum = data[i];
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		/**
+		 * Generates data by invoking all equations.
+		 * 
+		 * @return JSON object containing generated data
+		 */
+		JSONObject generateData() {
+			// Generate data
+			JSONObject json = new JSONObject();
+			for (int i = 0; i < data.length; i++) {
+				data[i] = equations[i].updateDatum(data[i]);
+				json.put(equations[i].getName(), data[i].getValue());
+			}
+			String time = simpleDateFormat.format(new Date(timestamp));
+			json.put("time", time);
+
+			// If reset then update timestamp accordingly
+			if (resetEquation != null) {
+				boolean isResetBaseTime = false;
+				double baseValue = resetDatum.getBaseValue();
+				switch (resetEquation.getType()) {
+				case REPEAT:
+					if (baseValue >= resetEquation.getMaxBase()) {
+						isResetBaseTime = resetBaseTime != 0 ? true : false;
+					}
+					break;
+				case REVERSE:
+				default:
+					if (baseValue >= resetEquation.getMaxBase()) {
+						isResetBaseTime = resetBaseTime != 0 ? true : false;
+					} else if (baseValue <= resetEquation.getMinBase()) {
+						isResetBaseTime = resetBaseTime != 0 ? true : false;
+					}
+					break;
+				}
+				if (isResetBaseTime) {
+					timestamp = resetBaseTime();
+				} else {
+					timestamp += timeInterval;
+				}
+			} else {
+				timestamp += timeInterval;
+			}
+			return json;
+		}
+
+		/**
+		 * Resets the base time.
+		 * 
+		 * Example:
+		 * <ul>
+		 * <li>resetBaseTime: 86_400_000 (1 day)</li>
+		 * <li>startTime: "2022-10-10T09:00:00.000-0400"</li>
+		 * <li>base time: "2024-11-11T11:12:34.565-0400"</li>
+		 * <li>new base time: "2024-11-11T09:00:00.000-0400" + resetStartTime</li>
+		 * <li>new base time: "2024-11-12T09:00:00.000-0400"</li>
+		 * </ul>
+		 * 
+		 * @param previousDatum Previous datum
+		 */
+		private long resetBaseTime() {
+			// Get time portion of startTime
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis(startTime);
+			int hour = calendar.get(Calendar.HOUR); // 12 hour clock
+			int minute = calendar.get(Calendar.MINUTE);
+			int second = calendar.get(Calendar.SECOND);
+			int millisecond = calendar.get(Calendar.MILLISECOND);
+
+			// Set the base time with the time portion of startTime
+			long baseTime = timestamp;
+			calendar.setTimeInMillis(baseTime);
+			calendar.set(Calendar.HOUR, hour);
+			calendar.set(Calendar.MINUTE, minute);
+			calendar.set(Calendar.SECOND, second);
+			calendar.set(Calendar.MILLISECOND, millisecond);
+
+			// Add resetBaseTime
+			long newBaseTime = calendar.getTimeInMillis() + resetBaseTime;
+			return newBaseTime;
+		}
+
 	}
 }
