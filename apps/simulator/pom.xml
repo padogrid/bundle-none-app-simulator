@@ -36,14 +36,13 @@
 		<hazelcast.version>5.3.1</hazelcast.version>
 		<javafx.version>20.0.1</javafx.version>
 		<questdb.version>7.2</questdb.version>
-      <log4j2.version>2.19.0</log4j2.version>
+		<log4j2.version>2.19.0</log4j2.version>
 		<skipTests>true</skipTests>
 	</properties>
 
 	<repositories></repositories>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>padogrid.addon</groupId>
 			<artifactId>padogrid-mqtt</artifactId>
@@ -115,12 +114,11 @@
 			<version>${questdb.version}</version>
 		</dependency>
 
-      <dependency>
-         <groupId>org.apache.logging.log4j</groupId>
-         <artifactId>log4j-core</artifactId>
-         <version>${log4j2.version}</version>
-      </dependency>
-
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j2.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -162,7 +160,7 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-						<excludeGroupIds>
+							<excludeGroupIds>
 						org.apache.geode,org.apache.shiro,org.springframework
 						</excludeGroupIds>
 							<outputDirectory>lib</outputDirectory>
