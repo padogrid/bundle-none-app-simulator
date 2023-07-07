@@ -19,14 +19,6 @@ fi
 #   mkdir -p $APP_DIR/lib
 #fi
 
-PADOGRID_COMMON_JAR_FILE_PATH=`ls $PADOGRID_HOME/lib/padogrid-common-*.jar`
-PADOGRID_COMMON_JAR_FILE_NAME="`basename $PADOGRID_COMMON_JAR_FILE_PATH`"
-PADOGRID_COMMON_NAME=${PADOGRID_COMMON_JAR_FILE_NAME%.jar}
-ADDON_VERSION=${PADOGRID_COMMON_NAME#padogrid-common-}
-
-PADOGRID_COMMON_JAR_FILE_PATH="$PADOGRID_HOME/lib/padogrid-common-$ADDON_VERSION.jar"
-PADOGRID_MQTT_JAR_FILE_PATH="$PADOGRID_HOME/mosquitto/lib/padogrid-mqtt-$ADDON_VERSION.jar"
-
 pushd $APP_DIR > /dev/null
 sed -i$__SED_BACKUP -e "s|<padogrid.version>.*$|<padogrid.version>$PADOGRID_VERSION</padogrid.version>|g" pom.xml
 popd > /dev/null
