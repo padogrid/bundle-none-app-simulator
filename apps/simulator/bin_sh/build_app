@@ -15,6 +15,10 @@ if [ "$HELP" == "true" ]; then
    exit
 fi
 
+#if [ ! -d $APP_DIR/lib ]; then
+#   mkdir -p $APP_DIR/lib
+#fi
+
 PADOGRID_COMMON_JAR_FILE_PATH=`ls $PADOGRID_HOME/lib/padogrid-common-*.jar`
 PADOGRID_COMMON_JAR_FILE_NAME="`basename $PADOGRID_COMMON_JAR_FILE_PATH`"
 PADOGRID_COMMON_NAME=${PADOGRID_COMMON_JAR_FILE_NAME%.jar}
@@ -27,19 +31,18 @@ pushd $APP_DIR > /dev/null
 sed -i$__SED_BACKUP -e "s|<padogrid.version>.*$|<padogrid.version>$PADOGRID_VERSION</padogrid.version>|g" pom.xml
 popd > /dev/null
 
-# Install padogrid to the local repo
-mvn install:install-file -Dfile=$PADOGRID_COMMON_JAR_FILE_PATH -DgroupId=padogrid.addon \
-    -DartifactId=padogrid-common -Dversion=$ADDON_VERSION -Dpackaging=jar
-mvn install:install-file -Dfile=$PADOGRID_MQTT_JAR_FILE_PATH -DgroupId=padogrid.addon \
-    -DartifactId=padogrid-mqtt -Dversion=$ADDON_VERSION -Dpackaging=jar
+# Install the required padogrid packages to the local repo
+installMavenPadogridJar padogrid-common
+installMavenPadogridJar padogrid-mqtt
 
+# Build app
 pushd $APP_DIR > /dev/null
 if [ "$CLEAN" == "true" ]; then
    rm $APP_DIR/lib/*
    mvn clean
 else
+   #mvn package -Dmaven.plugin.validation=brief
    mvn package
    cp $APP_DIR/lib/* $PADOGRID_WORKSPACE/lib/
 fi
 popd > /dev/null
-

@@ -126,7 +126,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<version>3.11.0</version>
 				<configuration>
 					<source>11</source>
 					<target>17</target>
@@ -135,7 +135,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.1</version>
+            <version>3.3.0</version>
 				<configuration>
 					<outputDirectory>lib</outputDirectory>
 				</configuration>
@@ -143,7 +143,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.0.0-M3</version>
+				<version>3.1.2</version>
 				<configuration>
 					<skipTests>${skipTests}</skipTests>
 				</configuration>
@@ -151,7 +151,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.6.0</version>
 				<executions>
 					<execution>
 						<id>copy-dependencies</id>
