@@ -572,7 +572,7 @@ publishers:
 You can add your own equations by creating Java static functions. All equation functions take the following form.
 
 ```java
-public final static double function(x) {
+public final static double function(double x) {
    return <computed_value>;
 }
 ```
