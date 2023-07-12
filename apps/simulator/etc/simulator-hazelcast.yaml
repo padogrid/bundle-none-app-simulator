@@ -14,16 +14,16 @@
 # limitations under the License.
 #
 
+# Optional time format.
+# Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+timeFormat: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
 # Equations for generating stock quotes
 equations:
 
   - name: stock1
     formula: y=tanh(x)
     description: tanh based stock quotes
-    # 1 day
-    #timeInterval: 86_400_000
-    # 7 days
-    timeInterval: 604_800_000
     minBase: 0
     maxBase: 2
     baseSpread: 0.01
@@ -35,8 +35,6 @@ equations:
   - name: stock2
     formula: y=x^3+x^2+1
     description: cubic based stock quotes
-    # 1 day
-    timeInterval: 86_400_000
     minBase: -1.2
     maxBase: 0.5
     multiplier: 100
@@ -51,13 +49,16 @@ publishers:
   # ---------
 
   # stocks
+   # map
   - product: hazelcast
     enabled: true
     name: stock-publisher
-    timeInterval: 500
+    timeInterval: 604_800_000
+    equations:
+      equationNames: [stock1, stock2]
+      equationDelay: 500
     dataStructure:
       type: map
       name: stocks
       keyType: FIXED
       keyValue: key
-    equationNames: [stock1, stock2]

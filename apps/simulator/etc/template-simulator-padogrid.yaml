@@ -130,13 +130,11 @@ publishers:
     #       type: MAP|RMAP|QUEUE|TOPIC|RTOPIC
     #       name: <map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keyPrefix: null
     #       keySquenceStart: 1
     #     dataStructure:
     #       type: RMAP
     #       name: <replicated_map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keyPrefix: null
     #       keySquenceStart: 1
     #     dataStructure:
     #       type: QUEUE
@@ -163,7 +161,6 @@ publishers:
       # Key type. Applies to Hazelcast data structures only. All keys are string.
       # Valid values are SEQUENCE|TIME|UUID.
       #    FIXED - Key value is a single fixed value. Set keyValue as the key value.
-      #            If keyPrefix is not defined then the key value is set to 'key'.
       #    SEQUENCE - Key values are sequenced starting from keySequenceStart.
       #    TIME - Key values are time stamps
       #    UUID - Key values are UUID.
