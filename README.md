@@ -668,10 +668,51 @@ QuestDB is an open source columnar time-series database ideal for storing data g
 1. Run QuestDB container
 
 ```bash
-docker run -p 9000:9000 -p 9009:9009 -p 8812:8812 questdb/questdb
+docker run --name questdb -p 9000:9000 -p 9009:9009 -p 8812:8812 questdb/questdb
 ```
 
-2. Run simulator
+2. If you are running the simulator from inside the PadoGrid container, then you need to change the QeustDB host name in the `HaMqttClient` configuration file as follows.
+
+From the host OS, find the QuestDB container IP address.
+
+```bash
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' questdb
+```
+
+Output:
+
+```console
+172.17.0.4
+```
+
+Enter the QuestDB IP address in the `etc/mqttv-questdb.yaml` file.
+
+```bash
+cd_app simulator
+vi etc/mqttv-questdb.yaml
+```
+
+For our example, the IP address is `172.17.0.4` as shown below.
+
+```yaml
+...
+    className: padogrid.mqtt.connectors.QuestDbJsonConnector
+    properties:
+      - key: endpoint
+        value: 172.17.0.4:9009
+...
+```
+
+If you are running an older version of PadoGrid Docker image, then the QuestDB Java API will faiil. This is due to [`glibc` compatibility issues](https://github.com/jxyang/gcompat). You can overcome this by setting `LD_PRELOAD` before running the simulator as follows.
+
+✏️  This step is not necessary for newer versions of the PadoGrid image (v0.9.27+), which have `LD_PRELOAD` already set.
+
+```bash
+export LD_PRELOAD=/lib/libgcompat.so.0
+```
+
+3. Run simulator
+
 
 ```bash
 cd_app simulator/bin_sh
@@ -679,7 +720,7 @@ cd_app simulator/bin_sh
 ./simulator -config ../etc/mqttv5-questdb.yaml -simulator-config ../etc/simulator-padogrid-all.yaml
 ```
 
-3. Open QuestDB console
+4. Open QuestDB console
 
 URL: <http://127.0.0.1:9000/>
 
