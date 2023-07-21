@@ -380,6 +380,9 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 
 				@Override
 				public void run() {
+					// TODO: The scheduler thread cannot be stopped individually. We let it fall
+					// through for now. We'll need to replace the scheduler with another mechanism
+					// in order to fix this.
 					if (publisher.isEnabled() == false) {
 						return;
 					}
