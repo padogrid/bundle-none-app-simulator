@@ -49,7 +49,7 @@ publishers:
   # ---------
 
   # stocks
-   # map
+  # map
   - product: hazelcast
     enabled: true
     name: stock-publisher

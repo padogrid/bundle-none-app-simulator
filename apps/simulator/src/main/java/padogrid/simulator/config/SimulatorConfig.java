@@ -20,7 +20,7 @@ import padogrid.simulator.Equation;
 
 public class SimulatorConfig {
 	public final static String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-	
+
 	private String timeFormat = TIME_FORMAT;
 	private Equation[] equations;
 	private Publisher[] publishers;
@@ -61,11 +61,11 @@ public class SimulatorConfig {
 		private String startTime;
 		// timeInterval in msec
 		private int timeInterval = 500;
-		private long count = Long.MAX_VALUE;
 		private boolean enabled = true;
 		private DataStructure dataStructure;
 		private PublisherEquation equations;
 		private Reset reset;
+		private long maxCount = -1;
 
 		public Product getProduct() {
 			return product;
@@ -107,14 +107,6 @@ public class SimulatorConfig {
 			this.timeInterval = timeInterval;
 		}
 
-		public long getCount() {
-			return count;
-		}
-
-		public void setCount(long count) {
-			this.count = count;
-		}
-
 		public boolean isEnabled() {
 			return enabled;
 		}
@@ -145,6 +137,24 @@ public class SimulatorConfig {
 
 		public void setReset(Reset reset) {
 			this.reset = reset;
+		}
+
+		/**
+		 * Returns the number of values to publish. If a negative value, then publishes
+		 * indefinitely. Default: -1.
+		 */
+		public long getMaxCount() {
+			return maxCount;
+		}
+
+		/**
+		 * Sets the max number of values to publish.
+		 * 
+		 * @param maxCount If a negative value, then publishes indefinitely. Default:
+		 *                 -1.
+		 */
+		public void setMaxCount(long maxCount) {
+			this.maxCount = maxCount;
 		}
 	}
 
@@ -222,7 +232,8 @@ public class SimulatorConfig {
 
 	public static class Reset {
 		private String equationName;
-		private long baseTime;
+		private long resetBaseTime;
+		private long iterations = -1;
 
 		public String getEquationName() {
 			return ConfigUtil.parseStringValue(equationName);
@@ -232,12 +243,30 @@ public class SimulatorConfig {
 			this.equationName = equationName;
 		}
 
-		public long getBaseTime() {
-			return baseTime;
+		public long getResetBaseTime() {
+			return resetBaseTime;
 		}
 
-		public void setBaseTime(long baseTime) {
-			this.baseTime = baseTime;
+		public void setResetBaseTime(long resetBaseTime) {
+			this.resetBaseTime = resetBaseTime;
+		}
+
+		/**
+		 * Returns the number of iterations. If a negative value, then iterates
+		 * indefinitely. Default: -1.
+		 */
+		public long getIterations() {
+			return iterations;
+		}
+
+		/**
+		 * Sets the number of iterations.
+		 * 
+		 * @param iterations If a negative value, then iterates indefinitely. Default:
+		 *                   -1.
+		 */
+		public void setIterations(long iterations) {
+			this.iterations = iterations;
 		}
 	}
 

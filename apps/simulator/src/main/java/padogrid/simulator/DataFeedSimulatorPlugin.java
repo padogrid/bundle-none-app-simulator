@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
@@ -338,7 +339,8 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		}
 
 		// Launch publisher threads
-		ScheduledExecutorService ses = Executors.newScheduledThreadPool(publisherMap.size());
+		final ScheduledExecutorService ses = Executors.newScheduledThreadPool(publisherMap.size());
+
 		Iterator<Map.Entry<Publisher, Equation[]>> iterator = publisherMap.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Map.Entry<Publisher, Equation[]> entry = iterator.next();
@@ -378,6 +380,9 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 
 				@Override
 				public void run() {
+					if (publisher.isEnabled() == false) {
+						return;
+					}
 					DataStructure ds = publisher.getDataStructure();
 					JSONObject json = publisherDatum.generateData();
 
@@ -464,11 +469,55 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 //							System.err.printf("ERROR: Exception occurred while invoking data structure [%s]%n",
 //									ex.getMessage());
 					}
+
+					if (publisherDatum.getMaxCount() >= 0
+							&& publisherDatum.getCount() >= publisherDatum.getMaxCount()) {
+						System.out.printf("Publisher max count reached [publisher=%s, count=%d]. Publisher stopped.%n",
+								publisherDatum.getName(), publisherDatum.getCount());
+						publisher.setEnabled(false);
+					} else if (publisherDatum.getIterations() >= 0
+							&& publisherDatum.getIterationCount() >= publisherDatum.getIterations()) {
+						System.out.printf(
+								"Publisher max iterations reached [publisher=%s, iterationCount=%d]. Publisher stopped.%n",
+								publisherDatum.getName(), publisherDatum.getIterationCount());
+						publisher.setEnabled(false);
+					}
+
+					// Stop the simulator if all publishers are terminated (disabled).
+					if (publisher.isEnabled() == false) {
+						stopSimulator(ses);
+					}
 				}
 
 			}, publisher.getInitialDelay(), publisher.getEquations().getEquationDelay(), TimeUnit.MILLISECONDS);
 		}
+	}
 
+	/**
+	 * Stop the simulator if all publishers are terminated (disabled).
+	 * 
+	 * @param ses executor service
+	 */
+	private void stopSimulator(final ScheduledExecutorService ses) {
+		boolean isAllTerminated = true;
+		Iterator<Map.Entry<Publisher, Equation[]>> iterator = publisherMap.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Publisher p = iterator.next().getKey();
+			if (p.isEnabled()) {
+				isAllTerminated = false;
+				break;
+			}
+		}
+		if (isAllTerminated) {
+			ses.shutdown();
+
+			if (haclient != null) {
+				haclient.disconnect();
+			}
+			if (hzInstance != null) {
+				hzInstance.shutdown();
+			}
+		}
 	}
 
 	private Equation getEquation(String equationName) {
@@ -559,6 +608,7 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 	}
 
 	class PublisherDatum {
+		String name;
 		Equation[] equations;
 		Datum[] data;
 		Equation resetEquation;
@@ -568,8 +618,13 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		long timestamp;
 		SimpleDateFormat simpleDateFormat;
 		private long resetBaseTime = 0;
+		private long maxCount = -1;
+		private long iterations = -1;
+		private long count = 0;
+		private long iterationCount = 0;
 
 		PublisherDatum(Publisher publisher, Equation[] equations) {
+			this.name = publisher.getName();
 			this.equations = equations;
 			this.data = new Datum[equations.length];
 			for (int i = 0; i < data.length; i++) {
@@ -596,9 +651,9 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 
 			// Determine reset equation if defined
 			if (publisher.getReset() != null && publisher.getReset().getEquationName() != null) {
-				if (publisher.getReset().getBaseTime() > 0) {
+				if (publisher.getReset().getResetBaseTime() >= 0) {
 					String equationName = publisher.getReset().getEquationName();
-					resetBaseTime = publisher.getReset().getBaseTime();
+					resetBaseTime = publisher.getReset().getResetBaseTime();
 					for (int i = 0; i < equations.length; i++) {
 						if (equations[i].getName().equals(equationName)) {
 							resetEquation = equations[i];
@@ -607,7 +662,10 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 						}
 					}
 				}
+				this.iterations = publisher.getReset().getIterations();
 			}
+
+			this.maxCount = publisher.getMaxCount();
 		}
 
 		/**
@@ -633,14 +691,17 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 				case REPEAT:
 					if (baseValue >= resetEquation.getMaxBase()) {
 						isResetBaseTime = resetBaseTime != 0 ? true : false;
+						iterationCount++;
 					}
 					break;
 				case REVERSE:
 				default:
 					if (baseValue >= resetEquation.getMaxBase()) {
 						isResetBaseTime = resetBaseTime != 0 ? true : false;
+						iterationCount++;
 					} else if (baseValue <= resetEquation.getMinBase()) {
 						isResetBaseTime = resetBaseTime != 0 ? true : false;
+						iterationCount++;
 					}
 					break;
 				}
@@ -651,6 +712,9 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 				}
 			} else {
 				timestamp += timeInterval;
+			}
+			if (maxCount > 0) {
+				count++;
 			}
 			return json;
 		}
@@ -691,5 +755,24 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 			return newBaseTime;
 		}
 
+		public String getName() {
+			return name;
+		}
+
+		public long getMaxCount() {
+			return maxCount;
+		}
+
+		public long getIterations() {
+			return iterations;
+		}
+
+		public long getCount() {
+			return count;
+		}
+
+		public long getIterationCount() {
+			return iterationCount;
+		}
 	}
 }
