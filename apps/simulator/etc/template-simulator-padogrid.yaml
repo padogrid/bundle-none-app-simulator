@@ -114,6 +114,7 @@ publishers:
       
       # Equation delay time in milliseconds. The publisher periodically delays this long before
       # publishing data. Set this attribute to control the rate at which data is published.
+      # The minimum value is 1. If less than or equal to 0, then it is overwritten to 1.
       # Default: 500
       equationDelay: 500
 

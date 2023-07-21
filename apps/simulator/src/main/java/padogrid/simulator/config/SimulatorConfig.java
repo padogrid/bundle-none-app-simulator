@@ -84,6 +84,9 @@ public class SimulatorConfig {
 		}
 
 		public int getInitialDelay() {
+			if (initialDelay < 0) {
+				return 0;
+			}
 			return initialDelay;
 		}
 
@@ -222,6 +225,10 @@ public class SimulatorConfig {
 		}
 
 		public long getEquationDelay() {
+			// The scheduler requires a non-zero positive number
+			if (equationDelay <= 0) {
+				equationDelay = 1;
+			}
 			return equationDelay;
 		}
 
