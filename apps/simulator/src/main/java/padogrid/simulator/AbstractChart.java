@@ -135,8 +135,8 @@ public class AbstractChart extends Application implements Constants {
 	 */
 	protected static void updateSeries(JSONObject json, String feature, String dateStr) {
 		Object val = json.get(feature);
-		if (val instanceof Double || val instanceof Float || val instanceof Integer || val instanceof Long) {
-			double value = (Double) json.get(feature);
+		if (val instanceof Number) {
+			Number value = (Number) json.get(feature);
 			XYChart.Series<String, Number> series = seriesMap.get(feature);
 			if (series == null) {
 				series = new XYChart.Series<String, Number>();
