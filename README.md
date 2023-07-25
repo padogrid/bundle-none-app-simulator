@@ -703,7 +703,7 @@ For our example, the IP address is `172.17.0.4` as shown below.
 ...
 ```
 
-If you are running an older version of PadoGrid Docker image, then the QuestDB Java API will faiil. This is due to [`glibc` compatibility issues](https://github.com/jxyang/gcompat). You can overcome this by setting `LD_PRELOAD` before running the simulator as follows.
+If you are running an older version of PadoGrid Docker image, then the QuestDB Java API will fail. This is due to [`glibc` compatibility issues](https://github.com/jxyang/gcompat). You can overcome this by setting `LD_PRELOAD` before running the simulator as follows.
 
 ✏️  This step is not necessary for newer versions of the PadoGrid image (v0.9.27+), which have `LD_PRELOAD` already set.
 
