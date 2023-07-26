@@ -379,6 +379,22 @@ cat etc/template-simulator-padogrid.yaml
 Output:
 
 ```yaml
+#
+# Copyright (c) 2023 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 # Optional time format.
 # Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
 timeFormat: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
@@ -444,12 +460,12 @@ equations:
     # Default: REVERSE
     type: REVERSE
 
-publishers:        
+publishers:
     # Product name. Valid values are MQTT|HAZELCAST
     # Required product name.
     # Default: MQTT
   - product: MQTT
-    
+
     # Optional parameter to enable (true) or disable (false) the publisher.
     # Default: true
     enabled: true
@@ -476,9 +492,10 @@ publishers:
     equations:
       # List of equations to execute.
       equationNames: []
-      
+
       # Equation delay time in milliseconds. The publisher periodically delays this long before
       # publishing data. Set this attribute to control the rate at which data is published.
+      # The minimum value is 1. If less than or equal to 0, then it is overwritten to 1.
       # Default: 500
       equationDelay: 500
 
@@ -495,13 +512,11 @@ publishers:
     #       type: MAP|RMAP|QUEUE|TOPIC|RTOPIC
     #       name: <map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keyPrefix: null
     #       keySquenceStart: 1
     #     dataStructure:
     #       type: RMAP
     #       name: <replicated_map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keyPrefix: null
     #       keySquenceStart: 1
     #     dataStructure:
     #       type: QUEUE
@@ -518,42 +533,50 @@ publishers:
       #   Hazelcast valid values: MAP|RMAP|QUEUE|TOPIC|RTOPIC
       # Default: TOPIC
       type: TOPIC
-      
+
       # Required data structure name.
       #   MQTT: Topic name
       #   Hazelcast: Name of map, replicated map, queue, topic, or reliable topic
       # Default: null <undefined>
       name: null
-      
+
       # Key type. Applies to Hazelcast data structures only. All keys are string.
       # Valid values are SEQUENCE|TIME|UUID.
       #    FIXED - Key value is a single fixed value. Set keyValue as the key value.
-      #            If keyPrefix is not defined then the key value is set to 'key'.
       #    SEQUENCE - Key values are sequenced starting from keySequenceStart.
       #    TIME - Key values are time stamps
       #    UUID - Key values are UUID.
       # Default: SEQUENCE
       keyType: FIXED
-      
+
       # Key value for the FIXED key type.
       # Default: key
       keyValue: key
-      
+
       # Key squence start number. Key sequence is incremented starting from this number.
       # Default: 1
       keySquenceStart: 1
-    
+
+    # Max number of values to publish. If this attribute is set, then the publisher stops
+    # after publshing the specified number of values. The simulator stops when all the
+    # publishers have stopped. If you want to stop after a complete cycle between 'minBase'
+    # and 'maxBase', then set the 'reset.interations' attribute instead. To publish
+    # indefintely, set a negative value.
+    # Default: -1 (no max. publish forever)
+    maxCount: -1
+
     # Optional reset. Set this element to reset the base time when it reaches 'minBase'
     # or 'maxBase'. By resetting the base time, you can simulate a repeatable time capsule
     # on a window of curve catured by 'minBase' and 'maxBase'.
     reset:
       # Set the equation that will be used to reset the base time. This equation serves
-      # as the basis for other equations.
+      # as the basis for other equations if theare are more than one (1) equation.
       equationName: null
 
-      # Base time reset. This value is added to the base time when the base (x) value when it
-      # reaches 'minBase' or 'maxBase'. The current base time is first reset to the date
-      # portion, and then this value is added to it as shown in the following example.
+      # Base time reset in milliseconds. This value is added to the base time when the base
+      # (x) value when it reaches 'minBase' or 'maxBase'. The current base time is first
+      # reset to the date portion, and then this value is added to it as shown in the
+      # following example.
       #
       #   reset.resetBaseTime: 86_400_000 (1 day)
       #   startTime: "2022-10-10T09:00:00.000-0400"
@@ -565,6 +588,13 @@ publishers:
       #
       # Default: 0
       resetBaseTime: 0
+
+      # Number of iterations. The simulator increments the iteration count when the base reaches
+      # `minBase` or 'maxBase'. When the iteration count reaches this value, the simulator
+      # stops the publisher. The simulator terminates when all the publishers stop. For
+      # indefinite iterations, set a negative value.
+      # Default: -1 (continue forever)
+      iterations: -1
 ```
 
 ## Adding New Equations
