@@ -25,7 +25,7 @@ The Data Feed Simulator publishes numerical data computed by a set of equations.
 - PadoGrid 0.9.27-SNAPSHOT+ (07/01/23)
 - Mosquitto 2.x
 - Hazelcast 5.x
-- JDK 17+
+- JDK 17+ (Required by JavaFX)
 
 ## Bundle Contents
 
