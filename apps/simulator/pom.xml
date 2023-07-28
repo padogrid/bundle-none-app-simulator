@@ -34,7 +34,7 @@
 		<paho.version>1.2.5</paho.version>
 		<snake.version>1.23</snake.version>
 		<hazelcast.version>5.3.1</hazelcast.version>
-		<javafx.version>20.0.1</javafx.version>
+		<javafx.version>19.0.2.1</javafx.version>
 		<questdb.version>7.2</questdb.version>
 		<log4j2.version>2.19.0</log4j2.version>
 		<skipTests>true</skipTests>
@@ -129,7 +129,7 @@
 				<version>3.11.0</version>
 				<configuration>
 					<source>11</source>
-					<target>17</target>
+					<target>11</target>
 				</configuration>
 			</plugin>
 			<plugin>
