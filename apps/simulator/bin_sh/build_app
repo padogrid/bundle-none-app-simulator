@@ -15,10 +15,6 @@ if [ "$HELP" == "true" ]; then
    exit
 fi
 
-#if [ ! -d $APP_DIR/lib ]; then
-#   mkdir -p $APP_DIR/lib
-#fi
-
 pushd $APP_DIR > /dev/null
 sed -i$__SED_BACKUP -e "s|<padogrid.version>.*$|<padogrid.version>$PADOGRID_VERSION</padogrid.version>|g" pom.xml
 popd > /dev/null
