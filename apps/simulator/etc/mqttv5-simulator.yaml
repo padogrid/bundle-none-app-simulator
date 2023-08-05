@@ -31,7 +31,7 @@ plugins:
     className: padogrid.simulator.DataFeedSimulatorPlugin
     
   # QuestDB connector. Writes simulated data to QuestDB via
-  # ILP(InflucDB Line Protocol) just before published.
+  # ILP(InfluxDB Line Protocol) just before published.
   - name: questdb
     description: Writes JSON messages to QuestDB
     enabled: false
