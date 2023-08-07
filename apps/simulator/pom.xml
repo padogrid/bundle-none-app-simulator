@@ -23,14 +23,14 @@
 	<groupId>padogrid.bundle</groupId>
 	<artifactId>data-feed-simulator</artifactId>
 	<packaging>jar</packaging>
-	<name>${arti${project.artifactId}</name>
+	<name>${project.artifactId}</name>
 	<version>1.0.3</version>
 	<description>PadoGrid data feed simulator</description>
 	<url>http://maven.apache.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<padogrid.version>0.9.27-SNAPSHOT</padogrid.version>
+		<padogrid.version>0.9.27</padogrid.version>
 		<paho.version>1.2.5</paho.version>
 		<snake.version>1.23</snake.version>
 		<hazelcast.version>5.3.1</hazelcast.version>
