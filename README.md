@@ -12,7 +12,7 @@ This bundle includes a data feed simulator for generating continous numerical da
 install_bundle -download bundle-none-app-simulator
 ```
 
-❗ This bundle is no longer compatible with PadoGrid 0.9.26 due to the recent changes made in the `HaMqttClient` API. Please use PadoGrid 0.9.27-SNAPSHOT or a later version.
+❗ This bundle is no longer compatible with PadoGrid 0.9.26 due to the recent changes made in the `HaMqttClient` API. Please use PadoGrid 0.9.27 or a later version.
 
 ## Use Case
 
