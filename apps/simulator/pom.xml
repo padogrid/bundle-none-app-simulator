@@ -61,13 +61,11 @@
 		</dependency>
 
 		<!-- Hazelcast -->
-      <!--
 		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
 			<version>${hazelcast.version}</version>
 		</dependency>
-      -->
 
 		<!-- JFX for charts -->
 		<dependency>
