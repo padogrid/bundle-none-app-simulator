@@ -30,10 +30,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<padogrid.version>0.9.27</padogrid.version>
+		<padogrid.version>0.9.29-SNAPSHOT</padogrid.version>
 		<paho.version>1.2.5</paho.version>
 		<snake.version>1.23</snake.version>
-		<hazelcast.version>5.3.1</hazelcast.version>
+		<hazelcast.version>5.3.2</hazelcast.version>
 		<javafx.version>19.0.2.1</javafx.version>
 		<questdb.version>7.2</questdb.version>
 		<log4j2.version>2.19.0</log4j2.version>
@@ -61,11 +61,14 @@
 		</dependency>
 
 		<!-- Hazelcast -->
+      <!--
 		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
 			<version>${hazelcast.version}</version>
+         <scope>provided</scope>
 		</dependency>
+      -->
 
 		<!-- JFX for charts -->
 		<dependency>
