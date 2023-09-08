@@ -92,7 +92,6 @@ public class AbstractChart extends Application implements Constants {
 		System.out.println(line);
 	}
 
-	@SuppressWarnings("unused")
 	protected static void write(String str) {
 		System.out.print(str);
 	}

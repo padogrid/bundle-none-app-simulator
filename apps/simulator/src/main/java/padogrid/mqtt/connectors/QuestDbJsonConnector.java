@@ -32,11 +32,13 @@ import io.questdb.client.Sender;
 import io.questdb.cutlass.line.LineSenderException;
 import padogrid.mqtt.client.cluster.HaMqttClient;
 import padogrid.mqtt.client.cluster.IHaMqttConnectorPublisher;
+import padogrid.mqtt.client.cluster.IHaMqttConnectorSubscriber;
 
 /**
  * {@linkplain QuestDbJsonConnector} writes JSON string representation to
- * QuestDB via ILP (InflucDB Line Protocol). The topic names are converted to
- * table names by replacing all illegal characters to '_' (underscore).
+ * QuestDB via ILP (InfluxDB Line Protocol). It supports both published and
+ * subscribed topics. The topic names are converted to table names by replacing
+ *  all illegal characters to '_' (underscore).
  * <p>
  * JSON values are stored as follows.
  * <ul>
@@ -54,7 +56,7 @@ import padogrid.mqtt.client.cluster.IHaMqttConnectorPublisher;
  * @author dpark
  *
  */
-public class QuestDbJsonConnector implements IHaMqttConnectorPublisher {
+public class QuestDbJsonConnector implements IHaMqttConnectorPublisher, IHaMqttConnectorSubscriber {
 
 	protected HaMqttClient haclient;
 	protected String connectorName;
@@ -78,10 +80,11 @@ public class QuestDbJsonConnector implements IHaMqttConnectorPublisher {
 	}
 
 	@Override
-	public boolean init(String pluginName, String description, Properties props, String...args) {
+	public boolean init(String pluginName, String description, Properties props, String... args) {
 		this.connectorName = pluginName;
 		endpoint = props.getProperty("endpoint", "localhost:9009");
-		logger.info(String.format("QuestDbConnector initialized: [pluginName=%s, description=%s, endpoint=%s]%n", pluginName, description, endpoint));
+		logger.info(String.format("QuestDbConnector initialized: [pluginName=%s, description=%s, endpoint=%s]%n",
+				pluginName, description, endpoint));
 		return true;
 	}
 
@@ -151,6 +154,9 @@ public class QuestDbJsonConnector implements IHaMqttConnectorPublisher {
 		}
 	}
 
+	/**
+	 * Saves the published messages to QuestDB.
+	 */
 	@Override
 	public byte[] beforeMessagePublished(MqttClient[] clients, String topic, byte[] payload) {
 		saveMessage(topic, payload);
@@ -179,5 +185,13 @@ public class QuestDbJsonConnector implements IHaMqttConnectorPublisher {
 		ConnectorArtifact(Sender sender) {
 			this.sender = sender;
 		}
+	}
+
+	/**
+	 * Saves the subscribed data to QuestDB.
+	 */
+	@Override
+	public void messageArrived(MqttClient client, String topic, byte[] payload) {
+		saveMessage(topic, payload);
 	}
 }

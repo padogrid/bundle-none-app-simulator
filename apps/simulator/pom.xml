@@ -24,7 +24,7 @@
 	<artifactId>data-feed-simulator</artifactId>
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
-	<version>1.0.4</version>
+	<version>1.0.5-SNAPSHOT</version>
 	<description>PadoGrid data feed simulator</description>
 	<url>http://maven.apache.org</url>
 

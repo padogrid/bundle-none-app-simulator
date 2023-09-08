@@ -60,7 +60,7 @@ clusters:
     publisherType: ROUND_ROBIN
     
     # QuestDB connector. Enable or disable in the 'connectors' element.
-    pluginName: questdb
+    pluginNames: [questdb]
 
     connections:
       - connection:

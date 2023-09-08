@@ -59,7 +59,7 @@ public class MqttChart extends AbstractChart {
 		writeLine("NAME");
 		writeLine("   " + executable + " - Chart the MQTT data published by the simulator");
 		writeLine();
-		writeLine("SNOPSIS");
+		writeLine("SYNOPSIS");
 		writeLine("   " + executable + " [[-cluster cluster_name] [-config config_file] | [-endpoints serverURIs]]");
 		writeLine("              [-fos fos] [-qos qos] [-features feature_list] [-time-format time_format] [-window-size window_size] -t topic_filter [-?]");
 		writeLine();
@@ -106,7 +106,7 @@ public class MqttChart extends AbstractChart {
 		writeLine("             it plots all numerical features.");
 		writeLine();
 		writeLine("   -time-format time_format");
-		writeLine("             Optional time format. The time format must match the 'time' attibute in the payload.");
+		writeLine("             Optional time format. The time format must match the 'time' attribute in the payload.");
 		writeLine("             Default: \"" + SimulatorConfig.TIME_FORMAT + "\"");
 		writeLine();
 		writeLine("   -window-size");
@@ -340,7 +340,6 @@ public class MqttChart extends AbstractChart {
 			public void messageArrived(MqttClient client, String topic, MqttMessage message) throws Exception {
 				try {
 					JSONObject json = new JSONObject(new String(message.getPayload(), StandardCharsets.UTF_8));
-					String time = json.getString("time");
 					updateChart(json);
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -394,7 +393,7 @@ public class MqttChart extends AbstractChart {
 			launch(args);
 
 		} catch (Exception e) {
-			System.err.printf("ERROR: Error occured while subscribing to the topic filter. Command aborted.%n");
+			System.err.printf("ERROR: Error occurred while subscribing to the topic filter. Command aborted.%n");
 			e.printStackTrace();
 			HaClusters.stop();
 			System.exit(-3);

@@ -30,7 +30,7 @@ equations:
     # Optional equation description (for documentation only)
     description: null
 
-    # Optional miniumn base (x) value. The base is equivalent to x in y=x.
+    # Optional minimum base (x) value. The base is equivalent to x in y=x.
     # Default: -1
     minBase: -1
 
@@ -74,8 +74,8 @@ equations:
     constant: 0
 
     # Optional cycle type. Valid values are REPEAT, REVERSE (case sensitive). If REPEAT, each
-    # caculation cycle increases the base value starting from minBase. If REVERSE, upon reaching
-    # the maxBase value, the caculation cycle is reversed by decrementing the base value.
+    # calculation cycle increases the base value starting from minBase. If REVERSE, upon reaching
+    # the maxBase value, the calculation cycle is reversed by decrementing the base value.
     # Default: REVERSE
     type: REVERSE
 
@@ -102,7 +102,7 @@ publishers:
     timeInterval: 500
 
     # Start time in 'timeFormat'. The timestamp (base time) begins at 'startTime' and incremented
-    # by `timeInterval' per equation exection.
+    # by `timeInterval' per equation execution.
     # Default: current time
     startTime: null
 
@@ -131,12 +131,12 @@ publishers:
     #       type: MAP|RMAP|QUEUE|TOPIC|RTOPIC
     #       name: <map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keySquenceStart: 1
+    #       keySequenceStart: 1
     #     dataStructure:
     #       type: RMAP
     #       name: <replicated_map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keySquenceStart: 1
+    #       keySequenceStart: 1
     #     dataStructure:
     #       type: QUEUE
     #       name: <queue_name>
@@ -172,24 +172,24 @@ publishers:
       # Default: key
       keyValue: key
       
-      # Key squence start number. Key sequence is incremented starting from this number.
+      # Key sequence start number. Key sequence is incremented starting from this number.
       # Default: 1
-      keySquenceStart: 1
+      keySequenceStart: 1
     
     # Max number of values to publish. If this attribute is set, then the publisher stops
-    # after publshing the specified number of values. The simulator stops when all the
+    # after publishing the specified number of values. The simulator stops when all the
     # publishers have stopped. If you want to stop after a complete cycle between 'minBase'
-    # and 'maxBase', then set the 'reset.interations' attribute instead. To publish
-    # indefintely, set a negative value.
+    # and 'maxBase', then set the 'reset.iterations' attribute instead. To publish
+    # indefinitely, set a negative value.
     # Default: -1 (no max. publish forever)
     maxCount: -1
 
     # Optional reset. Set this element to reset the base time when it reaches 'minBase'
     # or 'maxBase'. By resetting the base time, you can simulate a repeatable time capsule
-    # on a window of curve catured by 'minBase' and 'maxBase'.
+    # on a window of curve captured by 'minBase' and 'maxBase'.
     reset:
       # Set the equation that will be used to reset the base time. This equation serves
-      # as the basis for other equations if theare are more than one (1) equation.
+      # as the basis for other equations if there are more than one (1) equation.
       equationName: null
 
       # Base time reset in milliseconds. This value is added to the base time when the base
