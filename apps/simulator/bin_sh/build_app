@@ -16,7 +16,6 @@ if [ "$HELP" == "true" ]; then
 fi
 
 pushd $APP_DIR > /dev/null
-
 sed -i$__SED_BACKUP -e "s|<padogrid.version>.*$|<padogrid.version>$PADOGRID_VERSION</padogrid.version>|g" pom.xml
 popd > /dev/null
 
