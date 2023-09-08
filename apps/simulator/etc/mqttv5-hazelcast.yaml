@@ -1,0 +1,81 @@
+#
+# Copyright (c) 2023 Netcrest Technologies, LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# true to enable the cluster service, false to disable.
+# Default: true
+enabled: true
+
+# Default cluster name.
+# Default: cluster-default
+defaultCluster: edge
+
+plugins:
+    # Hazelcast connector. Subscribes to MQTT topic filters and
+    # inserts/updates the JSON payloads to Hazelcast data structures.
+  - name: hazelcast-maps
+    description: Stream JSON messages to Hazelcast
+    enabled: true
+    context: CLUSTER
+    className: padogrid.mqtt.connectors.HazelcastJsonConnectorSubscriber
+    properties:
+      - key: clusterName
+        value: dev
+      - key: endpoints
+        value: localhost:5701,localhost:5702
+      - key: dsType
+        value: MAP
+      - key: keyType
+        value: UUID
+    subscriptions:
+      - topicFilters: [test/#]
+        qos: 1
+  - name: hazelcast-topics
+    description: Stream JSON messages to Hazelcast
+    enabled: true
+    context: CLUSTER
+    className: padogrid.mqtt.connectors.HazelcastJsonConnectorSubscriber
+    properties:
+      - key: clusterName
+        value: dev
+      - key: endpoints
+        value: localhost:5701,localhost:5702
+      - key: dsType
+        value: TOPIC
+    subscriptions:
+      - topicFilters: [test/#]
+        qos: 1
+
+# Tag name that describes this JVM.
+# Default: cluster-tag
+tag: edge-hazelcast
+
+# Cluster probe delay interval in milliseconds. The cluster service periodically
+# probes the endpoints defined in each cluster.
+# Default: 5000 
+probeDelay: 5000
+
+clusters:
+  - name: edge
+    enabled: true
+    autoConnect: true
+    fos: 0
+
+    # Hazelcast connector. Enable or disable in the 'connectors' element.
+    pluginNames: [hazelcast-maps, hazelcast-topics]
+
+    connections:
+      - connection:
+          serverURIs: [tcp://localhost:1883-1885]

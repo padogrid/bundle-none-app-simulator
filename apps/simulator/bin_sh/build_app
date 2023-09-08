@@ -16,6 +16,7 @@ if [ "$HELP" == "true" ]; then
 fi
 
 pushd $APP_DIR > /dev/null
+
 sed -i$__SED_BACKUP -e "s|<padogrid.version>.*$|<padogrid.version>$PADOGRID_VERSION</padogrid.version>|g" pom.xml
 popd > /dev/null
 
@@ -33,4 +34,12 @@ else
    mvn package
    cp $APP_DIR/lib/* $PADOGRID_WORKSPACE/lib/
 fi
+
+# Update MQTT config files that have the deprecated attributes
+# v0.9.29
+if [ $PADOGRID_MAJOR_VERSION_NUMBER -eq 0 ] && [ $PADOGRID_MINOR_VERSION_NUMBER -eq 9 ] &&  [ $PADOGRID_UPDATE_VERSION_NUMBER -lt 29 ]; then
+   sed -i${__SED_BACKUP} -e 's|pluginName:.*$|pluginNames: [questdb]|' etc/mqttv5-questdb.yaml
+   sed -i${__SED_BACKUP} -e 's|pluginName:.*$|pluginNames: [questdb]|' etc/mqttv5-simulator.yaml
+fi
+
 popd > /dev/null
