@@ -30,31 +30,32 @@ The Data Feed Simulator publishes numerical data computed by a set of equations.
 ## Bundle Contents
 
 ```console
-simulator
-├── bin_sh
-│   ├── build_app
-│   ├── chart_hazelcast
-│   ├── chart_mqtt
-│   ├── setenv.sh
-│   └── simulator
-├── etc
-│   ├── hazelcast-client.xml
-│   ├── log4j2.properties
-│   ├── mqttv5-client.yaml
-│   ├── mqttv5-hazelcast.yaml
-│   ├── mqttv5-questdb.yaml
-│   ├── mqttv5-simulator.yaml
-│   ├── simulator-edge.yaml
-│   ├── simulator-hazelcast.yaml
-│   ├── simulator-logging.properties
-│   ├── simulator-misc.yaml
-│   ├── simulator-padogrid-all.yaml
-│   ├── simulator-padogrid.yaml
-│   ├── simulator-stocks.yaml
-│   └── template-simulator-padogrid.yaml
-└── src
-    └── main
-        └── java
+apps
+└── simulator
+    ├── bin_sh
+    │   ├── build_app
+    │   ├── chart_hazelcast
+    │   ├── chart_mqtt
+    │   ├── setenv.sh
+    │   └── simulator
+    ├── etc
+    │   ├── hazelcast-client.xml
+    │   ├── log4j2.properties
+    │   ├── mqttv5-client.yaml
+    │   ├── mqttv5-hazelcast.yaml
+    │   ├── mqttv5-questdb.yaml
+    │   ├── mqttv5-simulator.yaml
+    │   ├── simulator-edge.yaml
+    │   ├── simulator-hazelcast.yaml
+    │   ├── simulator-logging.properties
+    │   ├── simulator-misc.yaml
+    │   ├── simulator-padogrid-all.yaml
+    │   ├── simulator-padogrid.yaml
+    │   ├── simulator-stocks.yaml
+    │   └── template-simulator-padogrid.yaml
+    └── src
+        └── main
+            └── java
 ```
 
 ## Configuring Bundle Environment
