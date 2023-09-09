@@ -91,7 +91,7 @@ publishers:
       name: test/temperature
     reset:
       equationName: temperature
-      baseTime: 86_400_000
+      resetBaseTime: 86_400_000
 
   # carcost
   - product: mqtt
@@ -188,7 +188,7 @@ publishers:
       name: temperature
     reset:
       equationName: temperature
-      baseTime: 86_400_000
+      resetBaseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
@@ -203,7 +203,7 @@ publishers:
       name: temperature
     reset:
       equationName: temperature
-      baseTime: 86_400_000
+      resetBaseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
@@ -219,7 +219,7 @@ publishers:
       keyValue: key
     reset:
       equationName: temperature
-      baseTime: 86_400_000
+      resetBaseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
@@ -236,7 +236,7 @@ publishers:
       keyValue: key
     reset:
       equationName: temperature
-      baseTime: 86_400_000
+      resetBaseTime: 86_400_000
   - product: hazelcast
     enabled: true
     name: temperature-publisher
@@ -251,7 +251,7 @@ publishers:
       name: temperature
     reset:
       equationName: temperature
-      baseTime: 86_400_000
+      resetBaseTime: 86_400_000
 
   # carcost
   - product: hazelcast

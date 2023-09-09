@@ -5,30 +5,45 @@ SCRIPT_DIR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 EXECUTABLE="`basename $0`"
 
 if [ "$HELP" == "true" ]; then
-   echo "Usage:"
-   echo "   ./$EXECUTABLE [-clean] [-?]"
-   echo ""
-   echo "   Builds the MQTT simulator environment."
-   echo ""
-   echo "Default: ./$EXECUTABLE"
-   echo ""
-   exit
+cat <<EOF
+
+WORKSPACE
+   $PADOGRID_WORKSPACE
+
+NAME
+   $EXECUTABLE - Build the MQTT simulator environment
+
+SYNOPSIS
+   $EXECUTABLE [-clean]
+
+DESCRIPTION
+   Builds the MQTT simulator environment.
+
+OPTIONS
+   -clean
+             Cleans the build environment.
+
+EOF
+exit
 fi
 
 pushd $APP_DIR > /dev/null
 sed -i$__SED_BACKUP -e "s|<padogrid.version>.*$|<padogrid.version>$PADOGRID_VERSION</padogrid.version>|g" pom.xml
 popd > /dev/null
 
-# Install the required padogrid packages to the local repo
-installMavenPadogridJar padogrid-common
-installMavenPadogridJar padogrid-mqtt
-
 # Build app
 pushd $APP_DIR > /dev/null
 if [ "$CLEAN" == "true" ]; then
+   echo "Removing jar files..."
+   echo "   $APP_DIR/lib/*"
+   echo "   $PADOGRID_WORKSPACE/lib/*"
    rm $APP_DIR/lib/*
+   rm $PADOGRID_WORKSPACE/lib/*
    mvn clean
 else
+   # Install the required padogrid packages to the local repo
+   installMavenPadogridJar padogrid-common
+   installMavenPadogridJar padogrid-mqtt
    #mvn package -Dmaven.plugin.validation=brief
    mvn package
    cp $APP_DIR/lib/* $PADOGRID_WORKSPACE/lib/
