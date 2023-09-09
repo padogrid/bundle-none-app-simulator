@@ -38,15 +38,20 @@ simulator
 │   ├── setenv.sh
 │   └── simulator
 ├── etc
-│   ├── hazelcast-client.xml
-│   ├── log4j2.properties
-│   ├── mqttv5-client.yaml
-│   ├── simulator-edge.yaml
-│   ├── simulator-logging.properties
-│   ├── simulator-misc.yaml
-│   ├── simulator-padogrid.yaml
-│   ├── simulator-stocks.yaml
-│   └── template-simulator-padogrid.yaml
+│   ├── hazelcast-client.xml
+│   ├── log4j2.properties
+│   ├── mqttv5-client.yaml
+│   ├── mqttv5-hazelcast.yaml
+│   ├── mqttv5-questdb.yaml
+│   ├── mqttv5-simulator.yaml
+│   ├── simulator-edge.yaml
+│   ├── simulator-hazelcast.yaml
+│   ├── simulator-logging.properties
+│   ├── simulator-misc.yaml
+│   ├── simulator-padogrid-all.yaml
+│   ├── simulator-padogrid.yaml
+│   ├── simulator-stocks.yaml
+│   └── template-simulator-padogrid.yaml
 └── src
     └── main
         └── java
@@ -348,7 +353,7 @@ cd_app simulator/bin_sh
 ./chart_hazelcast -name carcost -ds map
 ```
 
-✏️  Note that `chart_hazelcast` first drains and plots existing entries in the Hazelcast `Queue` data structure before plotting updates.
+✏️  *Note that `chart_hazelcast` first drains and plots existing entries in the Hazelcast `Queue` data structure before plotting updates.*
 
 #### 4.4. `etc/simulator-padogrid-all.yaml`
 
@@ -379,22 +384,6 @@ cat etc/template-simulator-padogrid.yaml
 Output:
 
 ```yaml
-#
-# Copyright (c) 2023 Netcrest Technologies, LLC. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 # Optional time format.
 # Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
 timeFormat: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
@@ -701,7 +690,9 @@ QuestDB is an open source columnar time-series database ideal for storing data g
 docker run --name questdb -p 9000:9000 -p 9009:9009 -p 8812:8812 questdb/questdb
 ```
 
-2. If you are running the simulator from inside the PadoGrid container, then you need to change the QeustDB host name in the `HaMqttClient` configuration file as follows.
+2. **If you are running the simulator from inside the PadoGrid container,** then you need to change the QeustDB host name in the `HaMqttClient` configuration file as follows.
+
+✏️  *Skip this step if you are running the simulator from your host OS.*
 
 From the host OS, find the QuestDB container IP address.
 
@@ -735,7 +726,7 @@ For our example, the IP address is `172.17.0.4` as shown below.
 
 If you are running an older version of PadoGrid Docker image, then the QuestDB Java API will fail. This is due to [`glibc` compatibility issues](https://github.com/jxyang/gcompat). You can overcome this by setting `LD_PRELOAD` before running the simulator as follows.
 
-✏️  This step is not necessary for newer versions of the PadoGrid image (v0.9.27+), which have `LD_PRELOAD` already set.
+✏️  *This step is not necessary for newer versions of the PadoGrid image (v0.9.27+), which have `LD_PRELOAD` already set.*
 
 ```bash
 export LD_PRELOAD=/lib/libgcompat.so.0
@@ -784,7 +775,7 @@ clusters:
     publisherType: ROUND_ROBIN
 
     # QuestDB connector. Enable or disable in the 'plugins' element.
-    pluginName: questdb
+    pluginNames: [questdb]
 ...
 ```
 
@@ -805,7 +796,7 @@ vc_start -config mqtt5-simulator.yaml -?
 vc_start -config etc/mqttv5-simulator.yaml -simulator-config etc/simulator-stocks.yaml
 ```
 
-✏️  Note that the [`DataFeedSimulator`](apps/simulator/src/main/java/padogrid/simulator/DataFeedSimulator.java) class launched by the `simulator` command also invokes `padogrid.simulator.DataFeedSimulatorPlugin`.
+✏️  *Note that the [`DataFeedSimulator`](apps/simulator/src/main/java/padogrid/simulator/DataFeedSimulator.java) class launched by the `simulator` command also invokes `padogrid.simulator.DataFeedSimulatorPlugin`.*
 
 ## Teardown
 
