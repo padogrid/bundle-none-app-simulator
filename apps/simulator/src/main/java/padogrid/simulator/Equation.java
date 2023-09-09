@@ -193,7 +193,7 @@ public class Equation {
 				}
 				if (clazz != null) {
 					try {
-						calculation = (ICalculation) clazz.newInstance();
+						calculation = (ICalculation) clazz.getDeclaredConstructor().newInstance();
 					} catch (Exception e) {
 						System.err.printf("ERROR: Invalid class. [calculationClass=%s, error=%s] Equation discarded.%n",
 								calculationClass, e.getMessage());
@@ -218,7 +218,7 @@ public class Equation {
 				try {
 					clazz = Class.forName(className);
 				} catch (ClassNotFoundException e) {
-					System.err.printf("ERROR: Invalid class name. [functionNmae=%s, error=%s] Equation discarded.%n",
+					System.err.printf("ERROR: Invalid class name. [functionName=%s, error=%s] Equation discarded.%n",
 							calculationFunction, e.getMessage());
 				}
 

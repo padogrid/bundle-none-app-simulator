@@ -18,6 +18,9 @@ package padogrid.simulator.config;
 import padogrid.mqtt.client.cluster.internal.ConfigUtil;
 import padogrid.simulator.Equation;
 
+/**
+ * {@linkplain SimulatorConfig} sets the simulator configuration parameters.
+ */
 public class SimulatorConfig {
 	public final static String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 

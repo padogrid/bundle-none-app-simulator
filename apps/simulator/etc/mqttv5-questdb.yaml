@@ -33,6 +33,11 @@ plugins:
     properties:
       - key: endpoint
         value: localhost:9009
+        # Topic name replacement - regex default. Replaces '/' with '_'.
+      - key: topic.regex
+        value: "[\n\r?, '\"/:)(+*%~]"
+      - key: topic.regexReplacement
+        value: "_"
 
 # Tag name that describes this JVM.
 # Default: cluster-tag

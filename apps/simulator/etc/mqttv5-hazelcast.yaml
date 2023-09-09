@@ -26,11 +26,13 @@ plugins:
     # Hazelcast connector. Subscribes to MQTT topic filters and
     # inserts/updates the JSON payloads to Hazelcast data structures.
   - name: hazelcast-maps
-    description: Stream JSON messages to Hazelcast
+    description: Stream JSON messages to Hazelcast Map
     enabled: true
     context: CLUSTER
-    className: padogrid.mqtt.connectors.HazelcastJsonConnectorSubscriber
+    className: padogrid.mqtt.connectors.HazelcastJsonConnector
     properties:
+      - key: publisherEnabled
+        value: false
       - key: clusterName
         value: dev
       - key: endpoints
@@ -39,21 +41,33 @@ plugins:
         value: MAP
       - key: keyType
         value: UUID
+        # Topic name replacement - regex default. Replaces '/' with '_'.
+      - key: topic.regex
+        value: "[\n\r?, '\"/:)(+*%~]"
+      - key: topic.regexReplacement
+        value: "_"
     subscriptions:
       - topicFilters: [test/#]
         qos: 1
-  - name: hazelcast-topics
-    description: Stream JSON messages to Hazelcast
+  - name: hazelcast-rtopics
+    description: Stream JSON messages to Hazelcast Reliable Topic
     enabled: true
     context: CLUSTER
-    className: padogrid.mqtt.connectors.HazelcastJsonConnectorSubscriber
+    className: padogrid.mqtt.connectors.HazelcastJsonConnector
     properties:
+      - key: publisherEnabled
+        value: false
       - key: clusterName
         value: dev
       - key: endpoints
         value: localhost:5701,localhost:5702
       - key: dsType
-        value: TOPIC
+        value: RTOPIC
+        # Topic name replacement - regex default. Replaces '/' with '_'.
+      - key: topic.regex
+        value: "[\n\r?, '\"/:)(+*%~]"
+      - key: topic.regexReplacement
+        value: "_"
     subscriptions:
       - topicFilters: [test/#]
         qos: 1
@@ -74,7 +88,7 @@ clusters:
     fos: 0
 
     # Hazelcast connector. Enable or disable in the 'connectors' element.
-    pluginNames: [hazelcast-maps, hazelcast-topics]
+    pluginNames: [hazelcast-maps, hazelcast-rtopics]
 
     connections:
       - connection:
