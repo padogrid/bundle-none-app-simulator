@@ -803,8 +803,11 @@ vc_start -config etc/mqttv5-simulator.yaml -simulator-config etc/simulator-stock
 ```bash
 # Ctrl-C simulator and exit charts
 
+# Stop QuestDB docker container
+
 # Stop cluster
-stop_cluster
+stop_cluster -cluster mymosquitto
+stop_cluster -cluster myhz -all
 ```
 
 ## References
