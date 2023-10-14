@@ -192,6 +192,8 @@ SEE ALSO
 Try running the following examples.
 
 ```bash
+cd_app simulator/bin_sh
+
 # Display sine wave
 ./chart_mqtt -t test/sine
 
@@ -252,7 +254,7 @@ SEE ALSO
    etc/template-simulator-padogrid.yaml
 ```
 
-#### 4.2. Display MQTT data in trending chart
+#### 4.3. Display MQTT data in trending chart
 
 Try running the following examples.
 
@@ -264,13 +266,15 @@ Try running the following examples.
 ./chart_hazelcast -name test/dampedSineWave -ds topic
 ```
 
-#### 4.3. Simulator configuration files
+#### 4.4. Simulator configuration files
 
 Application specific data feeds are defined in `etc/simulator-stocks.yaml` and `etc/simulator-misc.yaml`. Try running them.
 
 First start the simulator:
 
 ```bash
+cd_app simulator/bin_sh
+
 # Stock prices
 ./simulator -simulator-config ../etc/simulator-stocks.yaml
 
@@ -281,6 +285,8 @@ First start the simulator:
 Run MQTT charts:
 
 ```bash
+cd_app simulator/bin_sh
+
 # Display simulator-stocks.yaml
 ./chart_mqtt -t test/stocks
 
