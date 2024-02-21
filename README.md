@@ -76,12 +76,12 @@ cd_app simulator/bin_sh
 
 ```bash
 # Mosquitto
-make_cluster -product mosquitto
+create_cluster -product mosquitto
 switch_cluster mymosquitto
 start_cluster 
 
 # Hazelcast
-make_cluster -product hazelcast
+create_cluster -product hazelcast
 switch_cluster myhz
 start_cluster 
 ```
