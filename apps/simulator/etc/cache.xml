@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://geode.apache.org/schema/cache"
+	xsi:schemaLocation="http://geode.apache.org/schema/cache 
+http://geode.apache.org/schema/cache/cache-1.0.xsd"
+	version="1.0" lock-lease="120" lock-timeout="60" search-timeout="300"
+	is-server="false" copy-on-read="false">
+
+	<!-- cache-server port is assigned by padogrid at member startup. If you 
+		have a multi-homed machine then make sure to set the bind-address
+		and hostname-for-clients attributes with the proper IP address. -->
+	<cache-server port="${geode-addon.server.port}" />
+
+	<!-- Microsoft's Northwind data regions accessed by the perf_test app. -->
+	<region name="test">
+      <!-- simulator-padogrid.yaml -->
+      <region name="sine" refid="PARTITION_REDUNDANT"></region>
+		<region name="dampedSineWave" refid="PARTITION_REDUNDANT"></region>
+		<region name="heartbeat" refid="PARTITION_REDUNDANT"></region>
+		<region name="tan" refid="PARTITION_REDUNDANT"></region>
+		<region name="tanh" refid="PARTITION_REDUNDANT"></region>
+		<region name="exp" refid="PARTITION_REDUNDANT"></region>
+		<region name="circle" refid="PARTITION_REDUNDANT"></region>
+		<region name="decay" refid="PARTITION_REDUNDANT"></region>
+		<region name="linear" refid="PARTITION_REDUNDANT"></region>
+		<region name="quadratic" refid="PARTITION_REDUNDANT"></region>
+		<region name="cubic" refid="PARTITION_REDUNDANT"></region>
+		<region name="quartic" refid="PARTITION_REDUNDANT"></region>
+		<region name="quintic" refid="PARTITION_REDUNDANT"></region>
+		<region name="sextic" refid="PARTITION_REDUNDANT"></region>
+		<region name="octic" refid="PARTITION_REDUNDANT"></region>
+		<region name="nontic" refid="PARTITION_REDUNDANT"></region>
+		<region name="decic" refid="PARTITION_REDUNDANT"></region>
+
+      <!-- simulator-all.yaml -->
+      <region name="all" refid="PARTITION_REDUNDANT"></region>
+	</region>
+
+   <!-- simulator-misc.yaml -->
+   <region name="igloo" refid="PARTITION_REDUNDANT"></region>
+   <region name="temperature" refid="PARTITION_REDUNDANT"></region>
+   <region name="carcost" refid="PARTITION_REDUNDANT"></region>
+   <region name="heartbeat" refid="PARTITION_REDUNDANT"></region>
+
+   <!-- simulator-geode.yaml, simulator-stocks.yaml -->
+   <region name="stocks" refid="PARTITION_REDUNDANT"></region>
+
+	<!-- padogrid provides a member initialization entry point. You can plugin 
+		your member initialization class that implements org.apache.geode.addon.cluster.cache.CacheInitializable. 
+		The following adds the CacheServerInitializer plugin. -->
+	<!-- 
+	<region name="init">
+		<region-attributes data-policy="empty">
+			<cache-listener>
+				<class-name> org.apache.geode.addon.cluster.cache.CacheInitializer
+				</class-name>
+				<parameter name="initDelay">
+					<string>5000</string>
+				</parameter>
+				<parameter name="cacheserver">
+					<declarable>
+						<class-name>org.apache.geode.addon.cluster.cache.CacheServerInitializer
+						</class-name>
+						<parameter name="system.property.prefix">
+							<string>cacheserver</string>
+						</parameter>
+					</declarable>
+				</parameter>
+			</cache-listener>
+		</region-attributes>
+	</region>
+	-->
+</cache>

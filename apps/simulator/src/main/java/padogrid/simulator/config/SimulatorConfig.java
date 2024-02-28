@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Netcrest Technologies, LLC. All rights reserved.
+ * Copyright (c) 2023-2024 Netcrest Technologies, LLC. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,11 +281,11 @@ public class SimulatorConfig {
 	}
 
 	public enum Product {
-		MQTT, mqtt, HAZELCAST, hazelcast
+		MQTT, mqtt, GEMFIRE, gemfire, GEODE, geode, HAZELCAST, hazelcast
 	}
 
 	public static enum DsType {
-		MAP, RMAP, QUEUE, TOPIC, RTOPIC, map, rmap, queue, topic, rtopic
+		REGION, MAP, RMAP, QUEUE, TOPIC, RTOPIC, region, map, rmap, queue, topic, rtopic
 	}
 
 	public static enum KeyType {

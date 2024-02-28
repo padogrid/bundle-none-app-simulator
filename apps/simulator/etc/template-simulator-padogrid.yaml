@@ -80,7 +80,7 @@ equations:
     type: REVERSE
 
 publishers:        
-    # Product name. Valid values are MQTT|HAZELCAST
+    # Product name. Valid values are MQTT|GEODE|GEMFIRE|HAZELCAST
     # Required product name.
     # Default: MQTT
   - product: MQTT
@@ -125,6 +125,14 @@ publishers:
     #       type: TOPIC
     #       name: <topic_name>
     #
+    # - geode
+    #     # Geode/GemFire dataStructure default is REGION
+    #     dataStructure:
+    #       type: REGION
+    #       name: <fully-qualified region_path> (must begin with '/')
+    #       keyType: FIXED|SEQUENCE|TIME|UUID
+    #       keySequenceStart: 1
+    #
     # - hazelcast
     #     # Hazelcast dataStructure default is TOPIC
     #     dataStructure:
@@ -149,17 +157,19 @@ publishers:
     dataStructure:
       # Required data structure type.
       #   MQTT valid valued: TOPIC)
+      #   Geode/GemFire valid values: REGION|MAP (REGION and MAP are equivalent)
       #   Hazelcast valid values: MAP|RMAP|QUEUE|TOPIC|RTOPIC
       # Default: TOPIC
       type: TOPIC
       
       # Required data structure name.
       #   MQTT: Topic name
+      #   Geode/GemFire: Name of region
       #   Hazelcast: Name of map, replicated map, queue, topic, or reliable topic
       # Default: null <undefined>
       name: null
       
-      # Key type. Applies to Hazelcast data structures only. All keys are string.
+      # Key type. Applies to Geode/GemFire and Hazelcast data structures only. All keys are string.
       # Valid values are SEQUENCE|TIME|UUID.
       #    FIXED - Key value is a single fixed value. Set keyValue as the key value.
       #    SEQUENCE - Key values are sequenced starting from keySequenceStart.

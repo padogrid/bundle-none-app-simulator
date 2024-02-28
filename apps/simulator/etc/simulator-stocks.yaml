@@ -58,9 +58,9 @@ equations:
 
 publishers:        
 
-  # ---------
-  # MQTT
-  # ---------
+  # -----------
+  # MQTT (mqtt)
+  # -----------
 
   # Optional start time. If specified, then overwrites the equation.startTime.
   # Must conform to timeFormat. Ex: "2022-10-10T09:00:00.000-0400"
@@ -80,10 +80,26 @@ publishers:
     equations:
       equationNames: [stock1, stock2]
       equationDelay: 100
+
+  # -----------------------------
+  # Geode/GemFire (geode|gemfire)
+  # -----------------------------
+
+  # region
+  - product: geode
+    enabled: true
+    name: stock-publisher
+    timeInterval: 604_800_000
+    equations:
+      equationNames: [stock1, stock2]
+      equationDelay: 500
+    dataStructure:
+      type: region
+      name: /stocks
       
-  # ---------
-  # Hazelcast
-  # ---------
+  # ---------------------
+  # Hazelcast (hazelcast)
+  # ---------------------
 
   # topic
   - product: hazelcast

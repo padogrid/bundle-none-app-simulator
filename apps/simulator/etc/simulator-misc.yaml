@@ -61,9 +61,9 @@ equations:
 
 publishers:
 
-  # ---------
-  # MQTT
-  # ---------
+  # -----------
+  # MQTT (mqtt)
+  # -----------
 
   # igloo
   - product: mqtt
@@ -117,10 +117,75 @@ publishers:
     dataStructure:
       type: topic
       name: test/heartbeat
+
+  # -----------------------------
+  # Geode/GemFire (geode|gemfire)
+  # -----------------------------
+  
+  # igloo
+  - product: geode
+    enabled: true
+    name: igloo-publisher
+    timeInterval: 500
+    equations:
+      equationNames: [igloo]
+    dataStructure:
+      type: region
+      name: /igloo
+      keyType: FIXED
+      keyValue: key
+
+  # temperature
+  - product: geode
+    enabled: true
+    name: temperature-publisher
+    startTime: "2022-11-10T00:00:00.000-0500"
+    # 10 min interval
+    timeInterval: 86_400
+    equations:
+      equationNames: [temperature]
+      equationDelay: 200
+    dataStructure:
+      type: region
+      name: /temperature
+      keyType: FIXED
+      keyValue: key
+    reset:
+      equationName: temperature
+      resetBaseTime: 86_400_000
+
+  # carcost
+  - product: geode
+    enabled: true
+    name: carcost-publisher
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      equationDelay: 100
+    dataStructure:
+      type: region
+      name: /carcost
+      keyType: FIXED
+      keyValue: key
+
+  # heartbeat
+  - product: geode
+    enabled: true
+    name: heartbeat-publisher
+    timeInterval: 30
+    equations:
+      equationNames: [heartbeat]
+      equationDelay: 30
+    dataStructure:
+      type: region
+      name: /heartbeat
+      keyType: FIXED
+      keyValue: key
     
-  # ---------
-  # Hazelcast
-  # ---------
+  # ---------------------
+  # Hazelcast (hazelcast)
+  # ---------------------
   
   # igloo
   - product: hazelcast

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Netcrest Technologies, LLC. All rights reserved.
+ * Copyright (c) 2023-2024 Netcrest Technologies, LLC. All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ public class HazelcastChart extends AbstractChart {
 		writeLine("NAME");
 		writeLine("   " + executable + " - Chart the Hazelcast data published by the simulator");
 		writeLine();
-		writeLine("SNOPSIS");
+		writeLine("SYNOPSIS");
 		writeLine("   " + executable + " -name ds_name [-ds map|rmap|queue|topic|rtopic]");
 		writeLine(
 				"                   [-features feature_list] [-time-format time_format] [-window-size window_size] [-?]");
@@ -123,7 +123,7 @@ public class HazelcastChart extends AbstractChart {
 		writeLine("             it plots all numerical features.");
 		writeLine();
 		writeLine("   -time-format time_format");
-		writeLine("             Optional time format. The time format must match the 'time' attibute in the payload.");
+		writeLine("             Optional time format. The time format must match the 'time' attribute in the payload.");
 		writeLine("             Default: \"" + SimulatorConfig.TIME_FORMAT + "\"");
 		writeLine();
 		writeLine("   -window-size");
@@ -318,7 +318,7 @@ public class HazelcastChart extends AbstractChart {
 		case QUEUE:
 		case queue:
 			hzQueue = hzInstance.getQueue(dsName);
-			chartTitle = "Qeuue: " + dsName;
+			chartTitle = "Queue: " + dsName;
 			break;
 
 		case RTOPIC:

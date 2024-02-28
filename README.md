@@ -27,6 +27,7 @@ The Data Feed Simulator publishes numerical data computed by a set of equations.
 
 - Mosquitto 2.x
 - Hazelcast 5.x
+- Geode 1.x or GemFire 9.x/10.x
 - JDK 11+ (Required by JavaFX and Hazelcast Management Center)
 
 ## Bundle Contents
@@ -36,11 +37,14 @@ apps
 └── simulator
     ├── bin_sh
     │   ├── build_app
+    │   ├── chart_geode
     │   ├── chart_hazelcast
     │   ├── chart_mqtt
     │   ├── setenv.sh
     │   └── simulator
     ├── etc
+    │   ├── client-cache.xml
+    │   ├── client-gemfire.properties
     │   ├── hazelcast-client.xml
     │   ├── log4j2.properties
     │   ├── mqttv5-client.yaml
@@ -55,12 +59,29 @@ apps
     │   ├── simulator-padogrid.yaml
     │   ├── simulator-stocks.yaml
     │   └── template-simulator-padogrid.yaml
+    ├── pom.xml
     └── src
         └── main
-            └── java
+            ├── java
+            └── resources
 ```
 
 ## Configuring Bundle Environment
+
+First, make sure you have all the required products installed.
+
+```bash
+install_padogrid -product mosquitto
+install_padogrid -product geode
+install_padogrid -product hazelcast-oss
+# Java must be downloaded manually. 'install_padogrid -?' provides instructions.
+install_padogrid -?
+
+update_padogrid -product mosquitto
+update_padogrid -product geode
+update_padogrid -product hazelcast-oss
+update_padogrid -product java
+```
 
 Build the simulator application as follows. The `build_app` script compiles the provided simulator source code.
 
@@ -77,6 +98,14 @@ cd_app simulator/bin_sh
 # Mosquitto
 create_cluster -product mosquitto
 switch_cluster mymosquitto
+start_cluster 
+
+# Geode
+create_cluster -product geode
+switch_cluster mygeode
+# Copy cache.xml from the simulator app. This file defines all the
+# regions used by the simulator.
+cp ../../apps/simulator/etc/cache.xml etc/
 start_cluster 
 
 # Hazelcast
@@ -200,7 +229,64 @@ cd_app simulator/bin_sh
 ./chart_mqtt -t test/dampedSineWave
 ```
 
-#### 4.2. `chart_hazelcast`
+![test/dampedSineWave](images/test-dampedSineWave.png)
+
+#### 4.2. `chart_geode`
+
+Display the Geode/GemFire data by running the `chart_geode` command which takes a data structure type and name as arguments.
+
+```bash
+./chart_geode -?
+```
+
+Output:
+
+```console
+NAME
+   chart_geode - Chart the Geode/GemFire data published by the simulator
+
+SYNOPSIS
+   chart_geode [-features feature_list] [-time-format time_format] [-window-size window_size] [-?]
+
+DESCRIPTION
+   Charts the Geode/GemFire data published by the simulator.
+
+OPTIONS
+   -name ds_name
+             Data structure name, i.e., fully-qualified region path. Region paths must begin with '/'.
+
+   -key key_value
+             Key value to listen on. If unspecified, it plots updates for all
+             key values. Specify this option for data structures configured
+             'keyType: FIXED'.
+
+   -features feature_list
+             Optional comma separated list of features (attributes) to plot. If unspecified,
+             it plots all numerical features.
+
+   -time-format time_format
+             Optional time format. The time format must match the 'time' attribute in the payload.
+             Default: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
+   -window-size
+             Optional chart window size. The maximum number of data points to display before start
+             trending the chart.
+             Default: 1000
+
+SEE ALSO
+   simulator(1)
+   etc/client-gemfire.properties
+   etc/client-cache.xml
+   etc/simulator-edge.yaml
+   etc/simulator-geode.yaml
+   etc/simulator-misc.yaml
+   etc/simulator-padogrid.yaml
+   etc/simulator-padogrid-all.yaml
+   etc/simulator-stocks.yaml
+   etc/template-simulator-padogrid.yaml
+```
+
+#### 4.3. `chart_hazelcast`
 
 Display the Hazelcast data by running the `chart_hazelcast` command which takes a data structure type and name as arguments.
 
@@ -253,18 +339,6 @@ SEE ALSO
    etc/template-simulator-padogrid.yaml
 ```
 
-#### 4.3. Display MQTT data in trending chart
-
-Try running the following examples.
-
-```bash
-# Display sine wave steamed to topic data structure
-./chart_hazelcast -name test/sine -ds topic
-
-# Display damped sine wave streamed to topic data structure
-./chart_hazelcast -name test/dampedSineWave -ds topic
-```
-
 #### 4.4. Simulator configuration files
 
 Application specific data feeds are defined in `etc/simulator-stocks.yaml` and `etc/simulator-misc.yaml`. Try running them.
@@ -277,7 +351,8 @@ cd_app simulator/bin_sh
 # Stock prices
 ./simulator -simulator-config ../etc/simulator-stocks.yaml
 
-# Miscellaneous data. For Hazelcast, publishes data to map, rmap, queue, topic, and rtopic.
+# Miscellaneous data. For Geode/GemFire, it publishes data to region.
+# For Hazelcast, it publishes data to map, rmap, queue, topic, and rtopic.
 ./simulator -simulator-config ../etc/simulator-misc.yaml
 ```
 
@@ -296,6 +371,19 @@ cd_app simulator/bin_sh
 ./chart_mqtt -t test/heartbeat
 ```
 
+Run Geode/GemFire charts:
+
+```bash
+# Display simulator-stocks.yaml
+./chart_geode -name /stocks -ds region
+
+# Display simulator-misc.yaml (publishes data to region)
+./chart_geode -name /igloo -ds region
+./chart_geode -name /temperature -ds region
+./chart_geode -name /carcost -ds region
+./chart_geode -name /heartbeat -ds region
+```
+
 Run Hazelcast charts:
 
 ```bash
@@ -309,11 +397,16 @@ Run Hazelcast charts:
 ./chart_hazelcast -name heartbeat -ds topic
 ```
 
+![heartbeat](images/heartbeat.png)
+
 The simulator supports multiple features per payload. Each payload represents an equation that generated data. For example, `etc/simulator-stocks.yaml` generates two (2) stock prices per payload. By default, the `chart_*` commands display all the numerical features found in the payload. To select features to display, sepcify the `-features` option. For example, the following displays only the `stock1` feature.
 
 ```bash
 # MQTT
 ./chart_mqtt -t test/stocks -features stock1
+
+# Geode/GemFire
+./chart_geode -name /stocks -features stock1
 
 # Hazelcast
 ./chart_hazelcast -name stocks -features stock1
@@ -326,10 +419,15 @@ cd_app simulator
 vi etc/simulator-misc.yaml
 ```
 
-For Hazelcast `Map` and `Replicated Map`, these files have been configured with `keyType: FIXED` to update the same key. You can optionally, specify the '-key' option to plot updates on the specified key.
+For Geode/GemFire `Region` and Hazelcast `Map` and `Replicated Map`, these files have been configured with `keyType: FIXED` to update the same key. You can optionally, specify the '-key' option to plot updates on the specified key.
 
 ```bash
 cd_app simulator/bin_sh
+
+# Geode/GemFire
+./chart_geode -name /carcost -ds region -key key
+
+# Hazelcast
 ./chart_hazelcast -name carcost -ds map -key key
 ```
 
@@ -338,6 +436,22 @@ To configure key types other than 'FIXED', please see  `etc/template-simulator-p
 ```yaml
 publishers:
 ...
+  - product: geode
+    enabled: true
+    name: carcost-publisher
+    # Interval between timestamps (msec). Timestamp is part of payload.
+    # 1 day interval
+    timeInterval: 86_400_000
+    equations:
+      equationNames: [carcost]
+      # Time delay between equation executions (msec)
+      equationDelay: 500
+    dataStructure:
+      type: region
+      name: carcost
+      keyType: SEQUENCE
+      keySequenceStart: 1000
+
   - product: hazelcast
     enabled: true
     name: carcost-publisher
@@ -355,31 +469,27 @@ publishers:
       keySequenceStart: 1000
 ```
 
-Run Hazelcast chart:
+✏️  *Note that if `-ds queue` is specified, then `chart_hazelcast` first drains and plots existing entries in the Hazelcast `Queue` data structure before plotting updates.*
+
+#### 4.5. `etc/simulator-padogrid-all.yaml`
+
+The `etc/simulator-padogrid-all.yaml` file places all the features defined in `simulator-padogrid.yaml` into a single payload.
 
 ```bash
 cd_app simulator/bin_sh
-./chart_hazelcast -name carcost -ds map
-```
-
-✏️  *Note that `chart_hazelcast` first drains and plots existing entries in the Hazelcast `Queue` data structure before plotting updates.*
-
-#### 4.4. `etc/simulator-padogrid-all.yaml`
-
-The `etc/simulator-padogrid-all.yaml` file places all the features defined in `simulator-padogrid.yaml` into a single payload. The resulting chart stands out as it plots all the features.
-
-```bash
-cd_app simulator/bin_sh
-
-# Simulator
 ./simulator -simulator-config ../etc/simulator-padogrid-all.yaml
 
 # MQTT
 ./chart_mqtt -t test/all
 
+# Geode/GemFire
+./chart_geode -name /test/all
+
 # Hazelcast
 ./chart_hazelcast -name test/all
 ```
+
+![test/all](images/test-all.png)
 
 ## Tuning Data Feeds
 
@@ -409,7 +519,7 @@ equations:
     # Optional equation description (for documentation only)
     description: null
 
-    # Optional miniumn base (x) value. The base is equivalent to x in y=x.
+    # Optional minimum base (x) value. The base is equivalent to x in y=x.
     # Default: -1
     minBase: -1
 
@@ -453,13 +563,13 @@ equations:
     constant: 0
 
     # Optional cycle type. Valid values are REPEAT, REVERSE (case sensitive). If REPEAT, each
-    # caculation cycle increases the base value starting from minBase. If REVERSE, upon reaching
-    # the maxBase value, the caculation cycle is reversed by decrementing the base value.
+    # calculation cycle increases the base value starting from minBase. If REVERSE, upon reaching
+    # the maxBase value, the calculation cycle is reversed by decrementing the base value.
     # Default: REVERSE
     type: REVERSE
 
 publishers:
-    # Product name. Valid values are MQTT|HAZELCAST
+    # Product name. Valid values are MQTT|GEODE|GEMFIRE|HAZELCAST
     # Required product name.
     # Default: MQTT
   - product: MQTT
@@ -481,7 +591,7 @@ publishers:
     timeInterval: 500
 
     # Start time in 'timeFormat'. The timestamp (base time) begins at 'startTime' and incremented
-    # by `timeInterval' per equation exection.
+    # by `timeInterval' per equation execution.
     # Default: current time
     startTime: null
 
@@ -504,18 +614,26 @@ publishers:
     #       type: TOPIC
     #       name: <topic_name>
     #
+    # - geode
+    #     # Geode/GemFire dataStructure default is REGION
+    #     dataStructure:
+    #       type: REGION
+    #       name: <fully-qualified region_path> (must begin with '/')
+    #       keyType: FIXED|SEQUENCE|TIME|UUID
+    #       keySequenceStart: 1
+    #
     # - hazelcast
     #     # Hazelcast dataStructure default is TOPIC
     #     dataStructure:
     #       type: MAP|RMAP|QUEUE|TOPIC|RTOPIC
     #       name: <map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keySquenceStart: 1
+    #       keySequenceStart: 1
     #     dataStructure:
     #       type: RMAP
     #       name: <replicated_map_name>
     #       keyType: FIXED|SEQUENCE|TIME|UUID
-    #       keySquenceStart: 1
+    #       keySequenceStart: 1
     #     dataStructure:
     #       type: QUEUE
     #       name: <queue_name>
@@ -528,17 +646,19 @@ publishers:
     dataStructure:
       # Required data structure type.
       #   MQTT valid valued: TOPIC)
+      #   Geode/GemFire valid values: REGION|MAP (REGION and MAP are equivalent)
       #   Hazelcast valid values: MAP|RMAP|QUEUE|TOPIC|RTOPIC
       # Default: TOPIC
       type: TOPIC
 
       # Required data structure name.
       #   MQTT: Topic name
+      #   Geode/GemFire: Name of region
       #   Hazelcast: Name of map, replicated map, queue, topic, or reliable topic
       # Default: null <undefined>
       name: null
 
-      # Key type. Applies to Hazelcast data structures only. All keys are string.
+      # Key type. Applies to Geode/GemFire and Hazelcast data structures only. All keys are string.
       # Valid values are SEQUENCE|TIME|UUID.
       #    FIXED - Key value is a single fixed value. Set keyValue as the key value.
       #    SEQUENCE - Key values are sequenced starting from keySequenceStart.
@@ -551,24 +671,24 @@ publishers:
       # Default: key
       keyValue: key
 
-      # Key squence start number. Key sequence is incremented starting from this number.
+      # Key sequence start number. Key sequence is incremented starting from this number.
       # Default: 1
-      keySquenceStart: 1
+      keySequenceStart: 1
 
     # Max number of values to publish. If this attribute is set, then the publisher stops
-    # after publshing the specified number of values. The simulator stops when all the
+    # after publishing the specified number of values. The simulator stops when all the
     # publishers have stopped. If you want to stop after a complete cycle between 'minBase'
-    # and 'maxBase', then set the 'reset.interations' attribute instead. To publish
-    # indefintely, set a negative value.
+    # and 'maxBase', then set the 'reset.iterations' attribute instead. To publish
+    # indefinitely, set a negative value.
     # Default: -1 (no max. publish forever)
     maxCount: -1
 
     # Optional reset. Set this element to reset the base time when it reaches 'minBase'
     # or 'maxBase'. By resetting the base time, you can simulate a repeatable time capsule
-    # on a window of curve catured by 'minBase' and 'maxBase'.
+    # on a window of curve captured by 'minBase' and 'maxBase'.
     reset:
       # Set the equation that will be used to reset the base time. This equation serves
-      # as the basis for other equations if theare are more than one (1) equation.
+      # as the basis for other equations if there are more than one (1) equation.
       equationName: null
 
       # Base time reset in milliseconds. This value is added to the base time when the base
@@ -672,21 +792,6 @@ Now, run `simulator` and `chart_mqtt`.
 cd_app simulator/bin_sh
 ./simulator -simulator-config ../etc/simulator-mydatafeed.yaml
 ./chart_mqtt -t mydatafeed/mydata
-```
-
-### 4.4. `etc/simulator-padogrid-all.yaml`
-
-The `etc/simulator-padogrid-all.yaml` file places all the features defined in `simulator-padogrid.yaml` into a single payload.
-
-```bash
-cd_app simulator/bin_sh
-./simulator -simulator-config ../etc/simulator-padogrid-all.yaml
-
-# MQTT
-./chart_mqtt -t test/all
-
-# Hazelcast
-./chart_hazelcast -name test/all
 ```
 
 ## QuestDB
@@ -818,6 +923,7 @@ docker rm questdb
 
 # Stop cluster
 stop_cluster -cluster mymosquitto
+stop_cluster -cluster mygeode -all
 stop_cluster -cluster myhz -all
 ```
 

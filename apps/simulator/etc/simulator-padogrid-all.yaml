@@ -144,7 +144,10 @@ equations:
     calculationFunction: padogrid.simulator.eq.Equations.decic
 
 publishers:        
-  # MQTT
+  # -----------
+  # MQTT (mqtt)
+  # -----------
+  #
   - product: mqtt
     name: all-publisher
     timeInterval: 500
@@ -153,10 +156,23 @@ publishers:
     dataStructure:
       type: topic
       name: test/all
+
+  # ---------------------------
+  # Geode/GemFire (geode|gemfire)
+  # ---------------------------
+
+  - product: geode
+    name: all-publisher
+    timeInterval: 500
+    equations:
+      equationNames: [sine,dampedSineWave,heartbeat,tan,tanh,exp,circle,decay,expDecay,linear,quadratic,cubic,quartic,quintic,circle,sextic,octic,nontic,decic]
+    dataStructure:
+      type: region
+      name: /test/all
  
-  # ---------
-  # Hazelcast
-  # ---------
+  # ---------------------
+  # Hazelcast (hazelcast)
+  # ---------------------
 
   - product: hazelcast
     name: all-publisher

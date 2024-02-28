@@ -44,13 +44,13 @@ equations:
 
 publishers:        
 
-  # ---------------------
-  # Hazelcast (hazelcast)
-  # ---------------------
+  # -----------------------------
+  # Geode/GemFire (geode|gemfire)
+  # -----------------------------
 
   # stocks
   # map
-  - product: hazelcast
+  - product: geode
     enabled: true
     name: stock-publisher
     timeInterval: 604_800_000
@@ -58,7 +58,7 @@ publishers:
       equationNames: [stock1, stock2]
       equationDelay: 500
     dataStructure:
-      type: map
-      name: stocks
+      type: region
+      name: /stocks
       keyType: FIXED
       keyValue: key

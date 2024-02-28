@@ -1,0 +1,47 @@
+<?xml	version="1.0"	encoding="UTF-8"?>
+<client-cache xmlns="http://geode.apache.org/schema/cache"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://geode.apache.org/schema/cache
+		http://geode.apache.org/schema/cache/cache-1.0.xsd"
+	version="1.0">
+	<pool name="serverPool" subscription-enabled="true">
+		 <locator host="localhost" port="10334" />
+	</pool>
+	<region-attributes id="clientAttributes"
+		pool-name="serverPool" refid="PROXY" />
+	
+	<!-- Regions used by etc/simulator-padogrid.yaml -->
+	<region name="test" refid="clientAttributes">
+      <!-- simulator-padogrid.yaml -->
+		<region name="sine" refid="clientAttributes"></region>
+		<region name="dampedSineWave" refid="clientAttributes"></region>
+		<region name="heartbeat" refid="clientAttributes"></region>
+		<region name="tan" refid="clientAttributes"></region>
+		<region name="tanh" refid="clientAttributes"></region>
+		<region name="exp" refid="clientAttributes"></region>
+		<region name="circle" refid="clientAttributes"></region>
+		<region name="decay" refid="clientAttributes"></region>
+		<region name="linear" refid="clientAttributes"></region>
+		<region name="quadratic" refid="clientAttributes"></region>
+		<region name="cubic" refid="clientAttributes"></region>
+		<region name="quartic" refid="clientAttributes"></region>
+		<region name="quintic" refid="clientAttributes"></region>
+		<region name="sextic" refid="clientAttributes"></region>
+		<region name="octic" refid="clientAttributes"></region>
+		<region name="nontic" refid="clientAttributes"></region>
+		<region name="decic" refid="clientAttributes"></region>
+
+      <!-- simulator-all.yaml -->
+		<region name="all" refid="clientAttributes"></region>
+	</region>
+
+   <!-- simulator-misc.yaml -->
+   <region name="igloo" refid="clientAttributes"></region>
+   <region name="temperature" refid="clientAttributes"></region>
+   <region name="carcost" refid="clientAttributes"></region>
+   <region name="heartbeat" refid="clientAttributes"></region>
+
+   <!-- simulator-geode.yaml, simulator-stocks.yaml -->
+   <region name="stocks" refid="clientAttributes"></region>
+
+</client-cache>

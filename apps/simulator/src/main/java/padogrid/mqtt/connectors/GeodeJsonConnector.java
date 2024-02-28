@@ -15,41 +15,39 @@
  */
 package padogrid.mqtt.connectors;
 
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.client.ClientCache;
+import org.apache.geode.cache.client.ClientCacheFactory;
+import org.apache.geode.pdx.JSONFormatter;
+import org.apache.geode.pdx.PdxInstance;
+import org.apache.geode.pdx.PdxSerializationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.paho.mqttv5.client.MqttClient;
 
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.collection.IQueue;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.HazelcastJsonValue;
-import com.hazelcast.map.IMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.shaded.org.json.JSONException;
-import com.hazelcast.shaded.org.json.JSONObject;
-import com.hazelcast.topic.ITopic;
-
+import padogrid.geode.util.GeodeUtil;
 import padogrid.mqtt.client.cluster.HaMqttClient;
 
 /**
- * {@linkplain HazelcastJsonConnector} writes JSON string representation to
- * Hazelcast. It supports both published and subscribed topics. The topic names
- * are converted to Hazelcast data structure names by replacing
+ * {@linkplain GeodeJsonConnector} writes JSON string representation to
+ * Geode. It supports both published and subscribed topics. The topic names
+ * are converted to Geode data structure names by replacing
  * all illegal characters including '/' to '_' (underscore).
  * <p>
  * JSON values are stored as follows.
  * <ul>
  * <li>number - double or long</li>
  * <li>string - string (If key is "time" then the value is assumed in the date
- * format of "yyyy-MM-dd'T'HH:mm:ss.SSSZ" and converted to Hazelcast timestamp. If
+ * format of "yyyy-MM-dd'T'HH:mm:ss.SSSZ" and converted to Geode timestamp. If
  * the date format does not match then it is stored as string.)</li>
  * <li>boolean - boolean</li>
  * </ul>
@@ -57,15 +55,16 @@ import padogrid.mqtt.client.cluster.HaMqttClient;
  * <p>
  * The following properties are supported.
  * <ul>
- * <li>publisherEnabled - "true" to enable the publisher to write to Hazelcast,
+ * <li>publisherEnabled - "true" to enable the publisher to write to Geode,
  * "false" to disable. Case-insensitive. Default: "true"</li>
- * <li>clusterName - Hazelcast cluster name. Default: "dev"</li>
- * <li>instanceName - Hazelcast client instance name. Default:
- * "{@linkplain HazelcastJsonConnector}-timestamp"</li>
- * <li>endpoints - Hazelcast endpoints URIs in the format of
+ * <li>clusterName - Geode cluster name. Default: "dev"</li>
+ * <li>instanceName - Geode client instance name. Default:
+ * "{@linkplain GeodeJsonConnector}-timestamp"</li>
+ * <li>endpoints - Geode endpoints URIs in the format of
  * host1:port1,host2:port2. Default: "localhost:5701"</li>
- * <li>topic.regex - Regex for renaming topics to Hazelcast data structure
- * names. By default, replaces '/', with '_'. Default: "[\n\r?, '\"/:)(+*%~]"</li>
+ * <li>topic.regex - Regex for renaming topics to Geode data structure
+ * names. By default, replaces '/', with '_'. Default: "[\n\r?,
+ * '\"/:)(+*%~]"</li>
  * <li>topic.regexReplacement - The string to be substituted for each match of
  * topic.regex. Default: "_"</li>
  * </ul>
@@ -74,11 +73,11 @@ import padogrid.mqtt.client.cluster.HaMqttClient;
  * @author dpark
  *
  */
-public class HazelcastJsonConnector extends AbstractConnector {
-    private Logger logger = LogManager.getLogger(HazelcastJsonConnector.class);
-    private HazelcastInstance hzInstance;
-    private HazelcastConnectorConfig.DsType dsType;
-    private HazelcastConnectorConfig.KeyType keyType;
+public class GeodeJsonConnector extends AbstractConnector {
+    private Logger logger = LogManager.getLogger(GeodeJsonConnector.class);
+    private ClientCache clientCache;
+    private GeodeConnectorConfig.DsType dsType;
+    private GeodeConnectorConfig.KeyType keyType;
 
     private ThreadLocal<ConnectorArtifact> threadLocal = new ThreadLocal<ConnectorArtifact>();
 
@@ -89,30 +88,21 @@ public class HazelcastJsonConnector extends AbstractConnector {
     @Override
     public boolean init(String pluginName, String description, Properties props, String... args) {
         super.init(pluginName, description, props, args);
-        String clusterName = props.getProperty("clusterName", "dev");
-        String endpoints = props.getProperty("endpoints", "localhost:5701");
-        String[] split = endpoints.split(",");
-        ClientConfig config = new ClientConfig();
-        config.setClusterName(clusterName);
-        for (String address : split) {
-            config.getNetworkConfig().addAddress(address);
-        }
-        String instanceName = props.getProperty("instanceName",
-                HazelcastJsonConnector.class.getSimpleName() + "-" + System.currentTimeMillis());
-        config.setInstanceName(instanceName);
-        hzInstance = HazelcastClient.getOrCreateHazelcastClient(config);
+
+        clientCache = new ClientCacheFactory().create();
 
         String val = props.getProperty("dsType", "MAP").toUpperCase();
-        dsType = HazelcastConnectorConfig.DsType.valueOf(val);
+        dsType = GeodeConnectorConfig.DsType.valueOf(val);
         val = props.getProperty("keyType", "SEQUENCE");
-        keyType = HazelcastConnectorConfig.KeyType.valueOf(val);
+        keyType = GeodeConnectorConfig.KeyType.valueOf(val);
 
         this.topicRegex = props.getProperty("topic.regex", DEFAULT_REGEX);
         this.topicRegexReplacement = props.getProperty("topic.regexReplacement", DEFAULT_REGEX_REPLACEMENT);
 
+        String locators = GeodeUtil.getLocators(clientCache);
         logger.info(String.format("%s initialized: [pluginName=%s, description=%s, publisherEnabled=%s, endpoint=%s]%n",
-                HazelcastJsonConnector.class.getSimpleName(), pluginName, description,
-                this.isPublisherEnabled, endpoints));
+                GeodeJsonConnector.class.getSimpleName(), pluginName, description,
+                this.isPublisherEnabled, locators));
         return true;
     }
 
@@ -125,31 +115,32 @@ public class HazelcastJsonConnector extends AbstractConnector {
     }
 
     /**
-     * Saves the specified payload to Hazelcast.
+     * Saves the specified payload to Geode.
      * 
      * @param topic   MQTT topic.
      * @param payload MQTT payload in JSON string representation.
      */
     private void savePayload(String topic, byte[] payload) {
-        String str = new String(payload, StandardCharsets.UTF_8);
-        HazelcastJsonValue hzJson = new HazelcastJsonValue(str);
-        saveJson(topic, hzJson);
+        String jsonStr = new String(payload, StandardCharsets.UTF_8);
+        saveJson(topic, jsonStr);
     }
 
     /**
-     * Saves the specified JSON object to Hazelcast. The data structure name is
+     * Saves the specified JSON object to Geode. The data structure name is
      * constructed based on the specified topic by replacing unsupported characters
      * with '_' (underscore).
      * 
-     * @param topic  MQTT topic.
-     * @param hzJson Hazelcast JSON object.
+     * @param topic   MQTT topic.
+     * @param jsonStr JSON string value.
      */
-    private void saveJson(String topic, HazelcastJsonValue hzJson) {
+    private void saveJson(String topic, String jsonStr) {
         // Replace unsupported characters to '_'
         String dsName = renameTopic(topic);
+        PdxInstance pdxObj = JSONFormatter.fromJSON(jsonStr);
         switch (dsType) {
-            case RMAP:
             case MAP:
+            case REGION:
+            default:
                 String key;
                 switch (keyType) {
                     case FIXED:
@@ -163,10 +154,9 @@ public class HazelcastJsonConnector extends AbstractConnector {
                         key = UUID.randomUUID().toString();
                         break;
                     case KEY:
-                        JSONObject json = new JSONObject(hzJson.getValue());
                         try {
-                            key = json.get(keyValue).toString();
-                        } catch (JSONException ex) {
+                            key = pdxObj.getField(keyValue).toString();
+                        } catch (PdxSerializationException ex) {
                             key = keyValue;
                         }
                         break;
@@ -176,33 +166,13 @@ public class HazelcastJsonConnector extends AbstractConnector {
                         break;
                 }
                 switch (dsType) {
-                    case RMAP:
-                        ReplicatedMap<String, HazelcastJsonValue> rmap = hzInstance.getReplicatedMap(dsName);
-                        rmap.put(key, hzJson);
-                        break;
-
                     case MAP:
+                    case REGION:
                     default:
-                        IMap<String, HazelcastJsonValue> map = hzInstance.getMap(dsName);
-                        map.set(key, hzJson);
+                        Region<String, PdxInstance> region = clientCache.getRegion(dsName);
+                        region.put(key, pdxObj);
                         break;
                 }
-                break;
-
-            case QUEUE:
-                IQueue<HazelcastJsonValue> queue = hzInstance.getQueue(dsName);
-                queue.offer(hzJson);
-                break;
-
-            case RTOPIC:
-                ITopic<HazelcastJsonValue> rtopic = hzInstance.getReliableTopic(dsName);
-                rtopic.publish(hzJson);
-                break;
-
-            case TOPIC:
-            default:
-                ITopic<HazelcastJsonValue> hztopic = hzInstance.getTopic(dsName);
-                hztopic.publish(hzJson);
                 break;
         }
     }

@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -36,6 +38,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.client.ClientCache;
+import org.apache.geode.cache.client.ClientCacheFactory;
+import org.apache.geode.pdx.JSONFormatter;
+import org.apache.geode.pdx.PdxInstance;
 import org.json.JSONObject;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -49,6 +56,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.topic.ITopic;
 
+import padogrid.geode.util.GeodeUtil;
 import padogrid.mqtt.client.cluster.ClusterService;
 import padogrid.mqtt.client.cluster.HaClusters;
 import padogrid.mqtt.client.cluster.HaMqttClient;
@@ -79,8 +87,13 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 	// <publisherName, Equation[]>
 	private HashMap<Publisher, Equation[]> publisherMap = new HashMap<Publisher, Equation[]>(10);
 
+	// MQTT
 	private HaMqttClient haclient;
 
+	// Geode/GemFire
+	private ClientCache clientCache;
+
+	// Hazelcast
 	private HazelcastInstance hzInstance;
 
 	private String productName;
@@ -123,7 +136,10 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		}
 
 		if (productName != null) {
-			if (!productName.equalsIgnoreCase("mqtt") && !productName.equalsIgnoreCase("hazelcast")) {
+			if (!productName.equalsIgnoreCase("mqtt") 
+				&& productName.equalsIgnoreCase("gemfire") 
+				&& productName.equalsIgnoreCase("geode") 
+				&& !productName.equalsIgnoreCase("hazelcast")) {
 				System.err.printf("ERROR: Unsupported product [%s]. Command aborted.%n", productName);
 				System.exit(-1);
 			}
@@ -202,10 +218,19 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		Publisher[] publishers = simulatorConfig.getPublishers();
 		boolean isMqtt = false;
 		boolean isHazelcast = false;
+		boolean isGeode = false;
 		for (Publisher publisher : publishers) {
 			isMqtt = publisher.isEnabled()
 					&& (publisher.getProduct() == Product.MQTT || publisher.getProduct() == Product.mqtt);
 			if (isMqtt) {
+				break;
+			}
+		}
+		for (Publisher publisher : publishers) {
+			isGeode = publisher.isEnabled()
+					&& (publisher.getProduct() == Product.GEMFIRE || publisher.getProduct() == Product.gemfire
+					   || publisher.getProduct() == Product.GEODE || publisher.getProduct() == Product.geode);
+			if (isGeode) {
 				break;
 			}
 		}
@@ -252,6 +277,19 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 			}
 		}
 
+		// Create clientCache
+		if (isGeode) {
+			if (productName == null || productName.equals("geode") || productName.equals("gemfire")) {
+				try {
+					clientCache = new ClientCacheFactory().create();
+				} catch (Exception ex) {
+					System.out.printf(
+							"Unable to create Geode/GemFire client instance [%s]%nGeode/GemFire client is configured in 'etc/client-cache.xml'.%nSkipping Hazelcast...%n",
+							ex.getMessage());
+				}
+			}
+		}
+
 		// Create hzInstance
 		if (isHazelcast) {
 			if (productName == null || productName.equals("hazelcast")) {
@@ -266,24 +304,43 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		}
 
 		// Must have at least one connected product
-		if ((haclient == null || haclient.isConnected() == false) && hzInstance == null) {
+		if ((haclient == null || haclient.isClosed())
+			&& (clientCache == null || clientCache.isClosed())
+			&& (hzInstance == null)) {
 			if (isMqtt) {
-				System.err.printf("ERROR: Unable to connect to virtual cluster [%s]. Endpoints unreachable %s.%n",
-						haclient.getClusterName(), Arrays.toString(haclient.getServerURIs()));
+				if (haclient == null || haclient.isClosed()) {
+					System.err.printf("ERROR: Unable to connect to virtual cluster [%s]. Endpoints unreachable %s.%n",
+							haclient != null ? haclient.getClusterName() : clusterName, haclient != null ? Arrays.toString(haclient.getServerURIs()) : "");
+				}
+			}
+			if (isGeode) {
+				if (clientCache == null || clientCache.isClosed()) {
+					System.err.printf("ERROR: Unable to connect to Geode/GemFire.%n");
+				}
 			}
 			if (isHazelcast) {
-				System.err.printf("ERROR: Unable to connect to Hazelcast.%n");
-
+				if (hzInstance == null) {
+					System.err.printf("ERROR: Unable to connect to Hazelcast.%n");
+				}
 			}
 			System.err.printf("       Command aborted.%n");
 			System.exit(-11);
 		} else {
-			if (isMqtt) {
+			if (isMqtt) { 
 				if (haclient == null || haclient.isConnected() == false) {
 					System.out.printf("MQTT: unable to connect to MQTT virtual cluster.%n");
 				} else {
 					System.out.printf("MQTT: MQTT virtual cluster connected. %s%n",
 							Arrays.toString(haclient.getServerURIs()));
+				}
+			}
+			if (isGeode) {
+				if (clientCache == null) {
+					System.out.printf("Geode/GemFire: unable to connect to Geode/GemFire cluster.%n");
+				} else {
+					String locators = GeodeUtil.getLocators(clientCache);
+					System.out.printf("Geode/GemFire: Geode/GemFire cluster connected. [%s]%n",
+							locators);
 				}
 			}
 			if (isHazelcast) {
@@ -310,6 +367,12 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		for (Publisher publisher : publishers) {
 			if (publisher.isEnabled()) {
 				if (productName == null || productName.equalsIgnoreCase(publisher.getProduct().name())) {
+					// If Geode/GemFire is not connected then skip
+					if ((publisher.getProduct() == Product.GEMFIRE || publisher.getProduct() == Product.gemfire
+					     || publisher.getProduct() == Product.GEODE || publisher.getProduct() == Product.geode)
+					   && clientCache == null) {
+						continue;
+					}
 					// If Hazelcast is not connected then skip
 					if ((publisher.getProduct() == Product.HAZELCAST || publisher.getProduct() == Product.hazelcast)
 							&& hzInstance == null) {
@@ -351,6 +414,16 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 				PublisherDatum publisherDatum = new PublisherDatum(publisher, equations);
 				long keySeq = 1;
 
+				// Geode/GemFire
+				Region<String, PdxInstance> region = clientCache != null
+						&& (publisher.getDataStructure().getType() == DsType.MAP
+						|| publisher.getDataStructure().getType() == DsType.map
+						|| publisher.getDataStructure().getType() == DsType.REGION
+						|| publisher.getDataStructure().getType() == DsType.region)
+							? clientCache.getRegion(publisher.getDataStructure().getName())
+							: null;
+
+				// Hazelcast
 				IMap<String, HazelcastJsonValue> hzMap = hzInstance != null
 						&& (publisher.getDataStructure().getType() == DsType.MAP
 								|| publisher.getDataStructure().getType() == DsType.map)
@@ -395,7 +468,45 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 							if (isQuiet == false) {
 								System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(), topic, json);
 							}
-						} else {
+						} else if (publisher.getProduct() == Product.GEODE || publisher.getProduct() == Product.geode
+								|| publisher.getProduct() == Product.GEODE || publisher.getProduct() == Product.geode) {
+							String jsonStr = json.toString();
+							PdxInstance pdxObj = JSONFormatter.fromJSON(jsonStr);
+							switch (ds.getType()) {
+							case MAP:
+							case REGION:
+							default:
+								String key;
+								switch (ds.getKeyType()) {
+								case FIXED:
+									key = ds.getKeyValue();
+									break;
+
+								case TIME:
+									key = json.getString("time");
+									break;
+
+								case UUID:
+									key = UUID.randomUUID().toString();
+									break;
+
+								case SEQUENCE:
+								default:
+									key = Long.toString(keySeq);
+									keySeq++;
+									break;
+								}
+								if (region != null) {
+									region.put(key, pdxObj);
+									if (isQuiet == false) {
+										System.out.printf("product=%s, region=%s: %s, %s%n", publisher.getProduct(),
+												region.getFullPath(), key, json);
+									}
+								}
+								break;
+							}
+
+						} else if (publisher.getProduct() == Product.HAZELCAST || publisher.getProduct() == Product.hazelcast) {
 							HazelcastJsonValue value = new HazelcastJsonValue(json.toString());
 							switch (ds.getType()) {
 							case MAP:
@@ -513,6 +624,12 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		if (isAllTerminated) {
 			ses.shutdown();
 
+			// Geode/GemFire
+			if (clientCache != null) {
+				clientCache.close();
+			}
+
+			// Hazelcast
 			if (haclient != null) {
 				haclient.disconnect();
 			}
@@ -550,8 +667,8 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		writeLine("NAME");
 		writeLine("   " + executable + " - Publish simulated data generated by equations");
 		writeLine();
-		writeLine("SNOPSIS");
-		writeLine("   " + executable + " [-product mqtt|hazelcast] [-cluster cluster_name] [-config config_file]");
+		writeLine("SYNOPSIS");
+		writeLine("   " + executable + " [-product mqtt|geode|gemfire|hazelcast] [-cluster cluster_name] [-config config_file]");
 		writeLine("            [-simulator-config simulator_config_file] [-quiet] [-?]");
 		writeLine();
 		writeLine("DESCRIPTION");
@@ -579,18 +696,18 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 		writeLine("   See etc/template-simulator-padogrid.yaml for details.");
 		writeLine();
 		writeLine("OPTIONS");
-		writeLine("   -product mqtt|hazelcast");
+		writeLine("   -product mqtt|geode|gemfire|hazelcast");
 		writeLine("             Publishes data to the specified product. If this option is unspecified,");
 		writeLine("             then by default, the simulator publishes to all of the products defined in the");
 		writeLine("             configuration file.");
 		writeLine();
 		writeLine("   -cluster cluster_name");
 		writeLine("             Connects to the specified cluster defined in the MQTT configuration file.");
-		writeLine("             This option applies to MQTT only. It is ignored for Hazelcast.");
+		writeLine("             This option applies to MQTT only. It is ignored for Geode/GemFire and Hazelcast.");
 		writeLine();
 		writeLine("   -config config_file");
 		writeLine("             Optional MQTT configuration file.");
-		writeLine("             Deault: etc/mqttv5-client.yaml");
+		writeLine("             Default: etc/mqttv5-client.yaml");
 		writeLine();
 		writeLine("   -simulator-config simulator_config_file");
 		writeLine("             Optional simulator configuration file.");

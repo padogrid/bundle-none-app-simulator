@@ -15,9 +15,9 @@
  */
 package padogrid.mqtt.connectors;
 
-public class HazelcastConnectorConfig {
+public class GeodeConnectorConfig {
 	public static enum DsType {
-		MAP, RMAP, QUEUE, TOPIC, RTOPIC
+		REGION, MAP
 	}
 
 	public static enum KeyType {

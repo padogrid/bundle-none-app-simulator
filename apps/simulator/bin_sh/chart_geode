@@ -23,22 +23,14 @@ EXECUTABLE="`basename $0`"
 
 # LOG_FILE (See etc/log4j.properties)
 if [[ ${OS_NAME} == CYGWIN* ]]; then
+   RESULTS_DIR="$(cygpath -wp "$RESULTS_DIR")"
+   PERF_PROPERTIES_FILE="$(cygpath -wp "$PERF_PROPERTIES_FILE")"
    LOG_FILE=$LOG_DIR\\$EXECUTABLE.log
    CLASSPATH="$(cygpath -wp "$CLASSPATH")"
 else
    LOG_FILE=$LOG_DIR/$EXECUTABLE.log
 fi
 export LOG_FILE
-
-# Topic prefix and config file path. Used by padogrid-mqtt containers.
-if [ "$PADOGRID_TOPIC_PREFIX" == "" ]; then
-   export PADOGRID_TOPIC_PREFIX="edge"
-fi
-
-PADOGRID_SIMULATOR_CONFIG_ARG=""
-if [ "$CONFIG_ARG" == "" ] && [ "$PADOGRID_SIMULATOR_CONFIG_FILE" != "" ]; then
-   PADOGRID_SIMULATOR_CONFIG_ARG="-simulator-config $PADOGRID_SIMULATOR_CONFIG_FILE"
-fi
 
 # Paho logging
 PAHO_LOG_CONFIG_FILE="$APP_ETC_DIR/paho-logging-$EXECUTABLE.properties"
@@ -51,13 +43,21 @@ JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.logfile=$LOG_FILE"
 JAVA_OPTS="$JAVA_OPTS -Dexecutable.name=$EXECUTABLE"
 
 # Application specifics
+#
 JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.client.cluster.config.file=$APP_ETC_DIR/mqttv5-client.yaml"
 JAVA_OPTS="$JAVA_OPTS -Dpadogrid.mqtt.simulator.config.file=$APP_ETC_DIR/simulator-padogrid.yaml"
 
 # To suppress warning jdk11: "FileLock may stop working in future versions of Java #507"
 if [[ "$JAVA_VERSION" != "1.8"* ]]; then
-   JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+   JAVA_OPTS="$JAVA_OPTS --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
+      --module-path $APP_DIR/lib --add-modules=javafx.controls"
 fi
 
-CLASSPATH="$GEODE_HOME/lib/geode-dependencies.jar:$CLASSPATH"
-"$JAVA" $JAVA_OPTS padogrid.simulator.DataFeedSimulator $PADOGRID_SIMULATOR_CONFIG_ARG "$@"
+if [ -f "$GEODE_HOME/lib/geode-dependencies.jar" ]; then
+   CLASSPATH="$GEODE_HOME/lib/geode-dependencies.jar:$CLASSPATH"
+elif [ -f "$GEMFIRE_HOME/lib/geode-dependencies.jar" ]; then
+   CLASSPATH="$GEMFIRE_HOME/lib/geode-dependencies.jar:$CLASSPATH"
+else
+   CLASSPATH="$GEMFIRE_HOME/lib/gemfire-dependencies.jar:$CLASSPATH"
+fi
+"$JAVA" $JAVA_OPTS padogrid.simulator.GeodeChart "$@"
