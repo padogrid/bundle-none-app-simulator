@@ -43,6 +43,7 @@ apps
     │   ├── setenv.sh
     │   └── simulator
     ├── etc
+    │   ├── cache.xml
     │   ├── client-cache.xml
     │   ├── client-gemfire.properties
     │   ├── hazelcast-client.xml
@@ -52,6 +53,7 @@ apps
     │   ├── mqttv5-questdb.yaml
     │   ├── mqttv5-simulator.yaml
     │   ├── simulator-edge.yaml
+    │   ├── simulator-geode.yaml
     │   ├── simulator-hazelcast.yaml
     │   ├── simulator-logging.properties
     │   ├── simulator-misc.yaml
