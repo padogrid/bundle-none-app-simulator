@@ -15,8 +15,6 @@ This bundle includes a data feed simulator for generating continous numerical da
 install_bundle -download bundle-none-app-simulator
 ```
 
-❗ This bundle is no longer compatible with PadoGrid 0.9.26 due to the recent changes made in the `HaMqttClient` API. Please use PadoGrid 0.9.27 or a later version.
-
 ## Use Case
 
 The Data Feed Simulator publishes numerical data computed by a set of equations. By adding noise (jitter) to the computed values, you can produce simulated data for real-world applications. There are a number of useful data feeds included in this bundle. You can customize them or introduce your own equations to generate based on your application requirements.
