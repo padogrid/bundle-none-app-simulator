@@ -92,7 +92,7 @@ cd_app simulator/bin_sh
 
 ## Startup Sequence
 
-### 1. Start Mosquitto and/or Hazelcast
+### 1. Start Mosquitto, GemFire/Geode, or Hazelcast
 
 ```bash
 # Mosquitto
