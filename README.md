@@ -7,7 +7,7 @@
 
 # Data Feed Simulator
 
-This bundle includes a data feed simulator for generating continous numerical data for MQTT and Hazelcast.
+This bundle includes a data feed simulator for generating continous numerical data for MQTT, GemFire/Geode, and Hazelcast.
 
 ## Installing Bundle
 
