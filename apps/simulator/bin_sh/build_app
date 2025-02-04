@@ -49,6 +49,8 @@ else
    installMavenPadogridJar padogrid-mqtt
    #mvn package -Dmaven.plugin.validation=brief
    mvn package
+   # Remove log4j jars to avoid version conflicts from GemFire, Hazelcast, PadoGrid.
+   rm $APP_DIR/lib/log4j*
    cp $APP_DIR/lib/* $PADOGRID_WORKSPACE/lib/
 fi
 

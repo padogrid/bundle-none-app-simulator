@@ -21,7 +21,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,7 +29,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -137,8 +135,8 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 
 		if (productName != null) {
 			if (!productName.equalsIgnoreCase("mqtt") 
-				&& productName.equalsIgnoreCase("gemfire") 
-				&& productName.equalsIgnoreCase("geode") 
+				&& !productName.equalsIgnoreCase("gemfire") 
+				&& !productName.equalsIgnoreCase("geode") 
 				&& !productName.equalsIgnoreCase("hazelcast")) {
 				System.err.printf("ERROR: Unsupported product [%s]. Command aborted.%n", productName);
 				System.exit(-1);
@@ -352,7 +350,6 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 				}
 			}
 		}
-
 	}
 
 	@Override
@@ -366,7 +363,16 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 
 		for (Publisher publisher : publishers) {
 			if (publisher.isEnabled()) {
-				if (productName == null || productName.equalsIgnoreCase(publisher.getProduct().name())) {
+				// Determine wether the specified product is valid.
+				boolean isValidProduct = productName == null || productName.equalsIgnoreCase(publisher.getProduct().name());
+				if (isValidProduct == false) {
+					isValidProduct = productName.equalsIgnoreCase("geode");
+				}
+				if (isValidProduct == false) {
+					isValidProduct = productName.equalsIgnoreCase("gemfire");
+				}
+
+				if (isValidProduct) {
 					// If Geode/GemFire is not connected then skip
 					if ((publisher.getProduct() == Product.GEMFIRE || publisher.getProduct() == Product.gemfire
 					     || publisher.getProduct() == Product.GEODE || publisher.getProduct() == Product.geode)
@@ -468,7 +474,7 @@ public class DataFeedSimulatorPlugin implements IHaMqttPlugin, Constants {
 							if (isQuiet == false) {
 								System.out.printf("product=%s, topic=%s: %s%n", publisher.getProduct(), topic, json);
 							}
-						} else if (publisher.getProduct() == Product.GEODE || publisher.getProduct() == Product.geode
+						} else if (publisher.getProduct() == Product.GEMFIRE || publisher.getProduct() == Product.gemfire
 								|| publisher.getProduct() == Product.GEODE || publisher.getProduct() == Product.geode) {
 							String jsonStr = json.toString();
 							PdxInstance pdxObj = JSONFormatter.fromJSON(jsonStr);
