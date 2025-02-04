@@ -37,6 +37,7 @@
 		<hazelcast.version>5.3.2</hazelcast.version>
 		<javafx.version>19.0.2.1</javafx.version>
 		<questdb.version>7.2</questdb.version>
+      <log4j2.version>2.17.2</log4j2.version>
 		<skipTests>true</skipTests>
 	</properties>
 
@@ -121,6 +122,11 @@
 			<version>${questdb.version}</version>
 		</dependency>
 
+      <dependency>
+         <groupId>org.apache.logging.log4j</groupId>
+         <artifactId>log4j-core</artifactId>
+         <version>${log4j2.version}</version>
+      </dependency>
 	</dependencies>
 
 	<build>
